@@ -11,4 +11,7 @@ u-track is a multiple-particle tracking MATLAB software that is designed to (1) 
 
 For more information, please see [Jaqaman et al., Nature Methods 5, pp. 695-702 (2008)](http://www.nature.com/nmeth/journal/v5/n8/full/nmeth.1237.html). Besides basic particle tracking, the software supports the features described in [Applegate et al. J. Struct. Biol. 176(2):168-84. 2011](https://www.ncbi.nlm.nih.gov/pubmed/21821130) for tracking microtubule plus end markers; and in [Ng et al. J. Cell Biol. 199(3):545-63. 2012](https://www.ncbi.nlm.nih.gov/pubmed/23091067) for tracking fluorescently-labeled cell nuclei.
 
-https://www.utsouthwestern.edu/labs/danuser/
+
+[Danuser Lab Website](https://www.utsouthwestern.edu/labs/danuser/)
+
+[Software Links](https://www.utsouthwestern.edu/labs/danuser/software/)
