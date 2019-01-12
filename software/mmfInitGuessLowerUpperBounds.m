@@ -1,5 +1,5 @@
 function [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPosT,maximaAmpT,...
-    bgAmpT,psfSigma,clusterPixels,firstFit)
+    bgAmpT,psfSigma,clusterPixels,firstFit,varSig)
 %MMFINITGUESSLOWERUPPERBOUNDS calculates the initial guess and lower and upper bounds for mixture-model fitting
 %
 %SYNOPSIS [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPosT,maximaAmpT,...
@@ -24,7 +24,7 @@ function [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPosT,maximaAmpT,...
 %
 %Khuloud Jaqaman, August 2011
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -64,6 +64,13 @@ end
 x0 = [x0 maximaAmpT];
 lb(:,3) = eps;
 ub(:,3) = 1;
+
+%feature sigma
+if varSig ==1
+    x0 = [x0 repmat(psfSigma,size(x0,1),1)];
+    lb(:,4) = 0.5*psfSigma;
+    ub(:,4) = psfSigma*5;
+end
 
 %background intensity
 x0 = x0';

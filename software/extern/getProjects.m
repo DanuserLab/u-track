@@ -37,7 +37,7 @@ function [projects, datasets] = getProjects(session, varargin)
 %
 % See also: GETOBJECTS, GETDATASETS, GETIMAGES
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

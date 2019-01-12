@@ -2,7 +2,7 @@ function [projData,M]=postProcessMTTracks(projData,tracksFinal,movieInfo,timeRan
 
 % Check additional input
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

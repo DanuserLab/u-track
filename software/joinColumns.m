@@ -20,7 +20,7 @@ function varargout = joinColumns(delimeter,varargin)
 %
 % joinColumns(matrix) and joinColumns([],matrix) are equivalent to matrix(:)
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

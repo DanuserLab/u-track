@@ -9,7 +9,7 @@ function [groupList, dirName]=combineGroupListFiles(saveResult)
 %
 % 2009/08 - Kathryn Applegate, Matlab R2008a
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

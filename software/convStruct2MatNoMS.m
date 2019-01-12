@@ -13,7 +13,7 @@ function [trackedFeatureInfo,trackedFeatureIndx] = convStruct2MatNoMS(tracksFina
 %numTimePoints will be smaller if we only look at the max frame number
 %used
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

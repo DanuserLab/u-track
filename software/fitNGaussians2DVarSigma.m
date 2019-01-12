@@ -1,5 +1,5 @@
-function [F,J] = fitNGaussians2D(x0,image,index,psfSigma)
-%FITNGAUSSIANS2D yields F, the difference between an image and a theoretical image produced by N Gaussians, and J, the Jacobian of F.
+function [F,J] = fitNGaussians2DVarSigma(x0,image,index)
+%FITNGAUSSIANS2DVARSIGMA yields F, the difference between an image and a theoretical image produced by N Gaussians, and J, the Jacobian of F.
 %
 %SYNOPSIS [F,J] = fitNGaussians2D(x0,image,index,psfSigma)
 %
@@ -36,6 +36,7 @@ function [F,J] = fitNGaussians2D(x0,image,index,psfSigma)
 %REMARKS F = model image - real image, important to know if the sign of the
 %residuals matters.
 %
+%Updated from fitNGaussians2D to include variable sigma, Tony Vega, July 2018
 %Khuloud Jaqaman, August 2005
 
 %% Output
@@ -46,7 +47,7 @@ J = [];
 %% Input
 
 %check whether correct number of input arguments was used
-if nargin ~= 4
+if nargin ~= 3
     disp('--fitNGaussians2D: Incorrect number of input arguments!');
     return
 end
@@ -58,15 +59,16 @@ bgAmp = x0(end);
 x0 = x0(1:end-1);
 
 %get number of PSFs considered
-numPSF = length(x0)/3;
+numPSF = length(x0)/4;
 
-%reshape 3nx1 vector x0 into nx3 matrix
-x0 = reshape(x0,3,numPSF);
+%reshape 4nx1 vector x0 into nx4 matrix
+x0 = reshape(x0,4,numPSF);
 x0 = x0';
 
 %extract PSF center positions and amplitudes
 psfPos = x0(:,1:2);
 psfAmp = x0(:,3);
+psfSigma = x0(:,4);
 
 %find minimum and maximum pixel indices
 minIndxX = min(index(:,1));
@@ -79,7 +81,7 @@ maxIndxY = max(index(:,2));
 psfIntegX = zeros(maxIndxX-minIndxX+1,numPSF);
 for i=1:numPSF
     psfIntegX(:,i) = GaussListND((minIndxX:maxIndxX)',...
-        psfSigma,psfPos(i,1));
+        psfSigma(i),psfPos(i,1));
 end
 
 %determine the contribution of each PSF (assuming amplitude 1) to a 
@@ -87,15 +89,16 @@ end
 psfIntegY = zeros(maxIndxY-minIndxY+1,numPSF);
 for i=1:numPSF
     psfIntegY(:,i) = GaussListND((minIndxY:maxIndxY)',...
-        psfSigma,psfPos(i,2));
+        psfSigma(i),psfPos(i,2));
 end
+
 
 %calculate the value of each PSF (assuming amplitude 1) at the 
 %x-coordinates of the corners of all pixels (needed to calculate J)
 psfValueX = zeros(maxIndxX-minIndxX+2,numPSF);
 for i=1:numPSF
     psfValueX(:,i) = exp(-((minIndxX-0.5:maxIndxX+0.5)'...
-        -psfPos(i,1)).^2/2/psfSigma^2);
+        -psfPos(i,1)).^2/2/psfSigma(i)^2);
 end
 
 %calculate the value of each PSF (assuming amplitude 1) at the
@@ -103,8 +106,33 @@ end
 psfValueY = zeros(maxIndxY-minIndxY+2,numPSF);
 for i=1:numPSF
     psfValueY(:,i) = exp(-((minIndxY-0.5:maxIndxY+0.5)'...
-        -psfPos(i,2)).^2/2/psfSigma^2);
+        -psfPos(i,2)).^2/2/psfSigma(i)^2);
 end
+%--------------------------------------------------------
+%calculate the value of each PSF (assuming amplitude 1) at the 
+%x-coordinates of the corners of all pixels (needed to calculate J)
+psfValueXS = zeros(maxIndxX-minIndxX+2,numPSF);
+for i=1:numPSF
+    psfValueXS(:,i) = (((minIndxX-0.5:maxIndxX+0.5)'-psfPos(i,1))).*exp(-((minIndxX-0.5:maxIndxX+0.5)'...
+        -psfPos(i,1)).^2/2/psfSigma(i)^2);
+end
+
+%calculate the value of each PSF (assuming amplitude 1) at the
+%y-coordinates of the corners of all pixels (needed to calculate J)
+psfValueYS = zeros(maxIndxY-minIndxY+2,numPSF);
+for i=1:numPSF
+    psfValueYS(:,i) = (((minIndxY-0.5:maxIndxY+0.5)'-psfPos(i,2))).*exp(-((minIndxY-0.5:maxIndxY+0.5)'...
+        -psfPos(i,2)).^2/2/psfSigma(i)^2);
+end
+%-------------------------------------------
+% % %calculate the value of each PSF (assuming amplitude 1) at the
+% % %y-coordinates of the corners of all pixels (needed to calculate J)
+% % psfValueS = zeros(maxIndxY-minIndxY+2,numPSF);
+% % for i=1:numPSF
+% %     psfValueS(:,i) = exp(-((minIndxY-0.5:maxIndxY+0.5)'...
+% %         -psfPos(i,2)).^2/2/psfSigma(i)^2);
+% %     %4*((1).^2+(1).^2)./psfSigma().^3
+% % end
 
 %get number of pixels in image
 numPixel = length(image);
@@ -125,13 +153,16 @@ F = F(indxPixel);
 
 if nargout > 1
     %calculate the derivative at all pixels
-    J = ones(numPixel,3*numPSF+1); %(last column for background amplitude)
-    J(:,1:3:3*numPSF) = repmat(psfAmp',numPixel,1).*(psfValueX(relIndxX,:)-...
+    J = ones(numPixel,4*numPSF+1); %(last column for background amplitude)
+    J(:,1:4:4*numPSF) = repmat(psfAmp',numPixel,1).*(psfValueX(relIndxX,:)-...
         psfValueX(relIndxX+1,:)).*psfIntegY(relIndxY,:); %w.r.t. x
-    J(:,2:3:3*numPSF) = repmat(psfAmp',numPixel,1).*(psfValueY(relIndxY,:)-...
+    J(:,2:4:4*numPSF) = repmat(psfAmp',numPixel,1).*(psfValueY(relIndxY,:)-...
         psfValueY(relIndxY+1,:)).*psfIntegX(relIndxX,:); %w.r.t. y
-    J(:,3:3:3*numPSF) = psfIntegX(relIndxX,:).*psfIntegY(relIndxY,:); %w.r.t. amp
-
+    J(:,3:4:4*numPSF) = psfIntegX(relIndxX,:).*psfIntegY(relIndxY,:); %w.r.t. amp
+    J(:,4:4:4*numPSF) = repmat((psfAmp./psfSigma)',numPixel,1).*((((psfValueXS(relIndxX,:)-psfValueXS(relIndxX+1,:))+psfIntegX(relIndxX,:)).*psfIntegY(relIndxY,:))...
+    +(((psfValueYS(relIndxY,:)-psfValueYS(relIndxY+1,:))+psfIntegY(relIndxY,:)).*psfIntegX(relIndxX,:))); %w.r.t. sigma
+    %(psfIntegY(relIndxY,:)+(psfValueYS(relIndxY,:)-psfValueYS(relIndxY+1,:))) ...
+    %    .*(psfIntegX(relIndxX,:)+(psfValueXS(relIndxX,:)-psfValueXS(relIndxX+1,:))).*repmat(psfSigma',numPixel,1).^-6; %w.r.t. sigma
     %remove pixels with NaN (which means they are out of the cropped image
     %area)
     J = J(indxPixel,:);

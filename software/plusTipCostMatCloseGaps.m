@@ -101,7 +101,7 @@ function [costMat,nonlinkMarker,indxMerge,numMerge,indxSplit,numSplit,...
 %Philippe Roudot 2014: 3D support
 %Adapted from costMatCloseGaps.m by Khuloud Jaqaman, April 2007
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

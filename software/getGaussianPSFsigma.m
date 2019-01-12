@@ -10,7 +10,7 @@
 % Ouputs
 %                sigma : standard deviation of the Gaussian PSF approximation, in pixels
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

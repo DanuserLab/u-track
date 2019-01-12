@@ -14,7 +14,7 @@ function volume = bfOpen3DVolume(filename)
 %
 %   volume - 3D array containing all images in the file.
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

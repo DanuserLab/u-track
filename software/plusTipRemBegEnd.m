@@ -3,7 +3,7 @@ function [ dataMatCrpSecMic,projData] = plusTipRemBegEnd(dataBeforeCrop, projDat
 %reclassification scheme so can call for subregional analysis where this 
 % has already been performed- might decide to change later(MB)
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

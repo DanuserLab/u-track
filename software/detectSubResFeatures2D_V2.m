@@ -1,6 +1,6 @@
 function [detectedFeatures,clustersMMF,imageN3,errFlag] = ...
     detectSubResFeatures2D_V2(image,cands,psfSigma,testAlpha,visual,...
-    doMMF,bitDepth,saveResults,bgNoiseSigma)
+    doMMF,bitDepth,saveResults,bgNoiseSigma,varSigma)
 %DETECTSUBRESFEATURES2D_V2 determines the positions and intensity amplitudes of sub-resolution features using mixture model fitting
 %
 %SYNOPSIS [detectedFeatures,clustersMMF,imageN3,errFlag] = ...
@@ -52,7 +52,7 @@ function [detectedFeatures,clustersMMF,imageN3,errFlag] = ...
 %
 %Khuloud Jaqaman, August 2005
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -176,6 +176,10 @@ else
     estimateBgNoise = 0;
 end
 
+if nargin < 10 || isempty(varSigma)
+    varSigma = 0;
+end
+
 %exit if there are problems with input data
 if errFlag
     disp('--detectSubResFeatures2D_V2: Please fix input data!');
@@ -227,7 +231,7 @@ options = optimset('Jacobian','on',...
 %reserve memory for clustersMMF
 numClusters = length(clusters);
 clustersMMF = repmat(struct('position',[],'amplitude',[],'bgAmp',[],...
-    'numDegFree',[],'residuals',[]),numClusters,1);
+    'numDegFree',[],'residuals',[],'sigma',[]),numClusters,1);
 
 %go over all clusters
 for i = 1 : numClusters
@@ -299,18 +303,26 @@ for i = 1 : numClusters
         
         %collect initial guesses and lower and upper bounds for fit
         [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPosT,maximaAmpT,...
-            bgAmpT,psfSigma,clusterPixels,firstFit);
+            bgAmpT,psfSigma,clusterPixels,firstFit,varSigma);
         
         %calculate number of degrees of freedom in system
-        numDegFreeT = size(clusterPixels,1)-3*numMaximaT-1;
+        numDegFreeT = size(clusterPixels,1)-(3+varSigma)*numMaximaT-1;
         
         %determine feature positions and amplitudes and estimate background
         %intensity, using nonlinear least squares data fitting
         %also get residuals and Jacobian matrix to calculate variance-covariance
         %of estimated parameters
-        [solutionT,dummy,residualsT,dummy,dummy,dummy,jacMatT] = ...
+        if varSigma
+
+            [solutionT,dummy,residualsT,outputC,dummy,dummy,jacMatT] = ...
+            lsqnonlin(@fitNGaussians2DVarSigma,x0,lb,ub,options,imageC,...
+            clusterPixels);
+        else
+            [solutionT,dummy,residualsT,dummy,dummy,dummy,jacMatT] = ...
             lsqnonlin(@fitNGaussians2D,x0,lb,ub,options,imageC,...
-            clusterPixels,psfSigma);
+            clusterPixels,psfSigma);    
+        end
+
         jacMatT = full(jacMatT);
         residualsT = -residualsT; %minus sign so that residuals = real image - model image
         residVarT = (sum(residualsT.^2)/numDegFreeT);
@@ -363,9 +375,9 @@ for i = 1 : numClusters
                 standDevVec = standDevVec(1:end-1);
                 
                 %reshape 3nx1 vectors "solution" and "standDevVec" into nx3 matrices
-                solution = reshape(solution,3,numMaxima);
+                solution = reshape(solution,(3+varSigma),numMaxima);
                 solution = solution';
-                standDevVec = reshape(standDevVec,3,numMaxima);
+                standDevVec = reshape(standDevVec,(3+varSigma),numMaxima);
                 standDevVec = standDevVec';
                 
                 %extract feature positions and amplitudes and their uncertainties
@@ -439,18 +451,25 @@ for i = 1 : numClusters
                 
                 %collect initial guesses and lower and upper bounds for fit
                 [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPos(:,1:2),...
-                    maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1);
+                    maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1,varSigma);
                 
                 %calculate number of degrees of freedom in system
-                numDegFree = size(clusterPixels,1) - 3*numMaxima - 1;
+                numDegFree = size(clusterPixels,1) - (3+varSigma)*numMaxima - 1;
                 
                 %determine feature positions and amplitudes and estimate background
                 %intensity, using nonlinear least squares data fitting
                 %also get residuals and Jacobian matrix to calculate variance-covariance
                 %of estimated parameters
-                [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
-                    lsqnonlin(@fitNGaussians2D,x0,lb,ub,options,imageC,...
-                    clusterPixels,psfSigma);
+                if varSigma
+
+                    [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
+                    lsqnonlin(@fitNGaussians2DVarSigma,x0,lb,ub,options,imageC,...
+                    clusterPixels);
+                else   
+                    [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
+                        lsqnonlin(@fitNGaussians2D,x0,lb,ub,options,imageC,...
+                        clusterPixels,psfSigma);
+                end
                 jacMat = full(jacMat);
                 residuals = -residuals; %minus sign so that residuals = real image - model image
                 residVar = sum(residuals.^2)/numDegFree;
@@ -470,9 +489,9 @@ for i = 1 : numClusters
                     standDevVec = standDevVec(1:end-1);
                     
                     %reshape 3nx1 vectors "solution" and "standDevVec" into nx3 matrices
-                    solution = reshape(solution,3,numMaxima);
+                    solution = reshape(solution,(3+varSigma),numMaxima);
                     solution = solution';
-                    standDevVec = reshape(standDevVec,3,numMaxima);
+                    standDevVec = reshape(standDevVec,(3+varSigma),numMaxima);
                     standDevVec = standDevVec';
                     
                     %extract feature positions and amplitudes and their uncertainties
@@ -547,18 +566,25 @@ for i = 1 : numClusters
                 
                 %collect initial guesses and lower and upper bounds for fit
                 [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPos(:,1:2),...
-                    maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1);
+                    maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1,varSigma);
                 
                 %calculate number of degrees of freedom in system
-                numDegFree = size(clusterPixels,1) - 3*numMaxima - 1;
+                numDegFree = size(clusterPixels,1) - (3+varSigma)*numMaxima - 1;
                 
                 %determine feature positions and amplitudes and estimate background
                 %intensity, using nonlinear least squares data fitting
                 %also get residuals and Jacobian matrix to calculate variance-covariance
                 %of estimated parameters
+                if varSigma
+
+                    [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
+                    lsqnonlin(@fitNGaussians2DVarSigma,x0,lb,ub,options,imageC,...
+                    clusterPixels);
+                else
                 [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
                     lsqnonlin(@fitNGaussians2D,x0,lb,ub,options,imageC,...
                     clusterPixels,psfSigma);
+                end
                 jacMat = full(jacMat);
                 residuals = -residuals; %minus sign so that residuals = real image - model image
                 residVar = sum(residuals.^2)/numDegFree;
@@ -578,9 +604,9 @@ for i = 1 : numClusters
                     standDevVec = standDevVec(1:end-1);
                     
                     %reshape 3nx1 vectors "solution" and "standDevVec" into nx3 matrices
-                    solution = reshape(solution,3,numMaxima);
+                    solution = reshape(solution,(3+varSigma),numMaxima);
                     solution = solution';
-                    standDevVec = reshape(standDevVec,3,numMaxima);
+                    standDevVec = reshape(standDevVec,(3+varSigma),numMaxima);
                     standDevVec = standDevVec';
                     
                     %extract feature positions and amplitudes and their uncertainties
@@ -628,18 +654,24 @@ for i = 1 : numClusters
         
         %collect initial guesses and lower and upper bounds for fit
         [x0,lb,ub] = mmfInitGuessLowerUpperBounds(maximaPos(:,1:2),...
-            maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1);
+            maximaAmp(:,1),bgAmp(1),psfSigma,clusterPixels,1,varSigma);
         
         %calculate number of degrees of freedom in system
-        numDegFree = size(clusterPixels,1)-3*numMaxima-1;
+        numDegFree = size(clusterPixels,1)-(3+varSigma)*numMaxima-1;
         
         %determine feature positions and amplitudes and estimate background
         %intensity, using nonlinear least squares data fitting
         %also get residuals and Jacobian matrix to calculate variance-covariance
         %of estimated parameters
-        [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
+        if varSigma
+            [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
+            lsqnonlin(@fitNGaussians2DVarSigma,x0,lb,ub,options,imageC,...
+            clusterPixels);
+        else
+            [solution,dummy,residuals,dummy,dummy,dummy,jacMat] = ...
             lsqnonlin(@fitNGaussians2D,x0,lb,ub,options,imageC,...
             clusterPixels,psfSigma);
+        end
         jacMat = full(jacMat);
         residuals = -residuals; %minus sign so that residuals = real image - model image
         residVar = sum(residuals.^2)/numDegFree;
@@ -656,9 +688,9 @@ for i = 1 : numClusters
         standDevVec = standDevVec(1:end-1);
         
         %reshape 3nx1 vectors "solution" and "standDevVec" into nx3 matrices
-        solution = reshape(solution,3,numMaxima);
+        solution = reshape(solution,(3+varSigma),numMaxima);
         solution = solution';
-        standDevVec = reshape(standDevVec,3,numMaxima);
+        standDevVec = reshape(standDevVec,(3+varSigma),numMaxima);
         standDevVec = standDevVec';
         
         %extract feature positions and amplitudes and their uncertainties
@@ -671,6 +703,9 @@ for i = 1 : numClusters
         clustersMMF(i).bgAmp = bgAmp;
         clustersMMF(i).numDegFree = numDegFree;
         clustersMMF(i).residuals = residuals;
+        if varSigma
+            clustersMMF(i).sigma = [solution(:,4) standDevVec(:,4)];
+        end
         
     end %(if keepCluster(i))
     
@@ -730,17 +765,14 @@ if ~isempty(indx)
         detectedFeatures.xCoord = [tmp(:,1) tmp(:,3)];
         detectedFeatures.yCoord = [tmp(:,2) tmp(:,4)];
         detectedFeatures.amp = vertcat(clustersMMF.amplitude);
-        
+        detectedFeatures.sigma = vertcat(clustersMMF.sigma);
     end
     
 end %(if ~isempty(indx))
 
 if isempty(indx)
-    
-    %store empty structures
-    clustersMMF = struct('position',zeros(0,4),'amplitude',zeros(0,2),'bgAmp',zeros(0,2));
-    detectedFeatures = struct('xCoord',zeros(0,2),'yCoord',zeros(0,2),'amp',zeros(0,2));
-    
+        clustersMMF = struct('position',zeros(0,4),'amplitude',zeros(0,2),'sigma',zeros(0,2),'bgAmp',zeros(0,2));
+        detectedFeatures = struct('xCoord',zeros(0,2),'yCoord',zeros(0,2),'amp',zeros(0,2),'sigma',zeros(0,2));    
 end
 
 %save output if requested

@@ -1,8 +1,8 @@
-function [trackClass,mssSlope,genDiffCoef,scalingPower,normDiffCoef,estimError] ...
-    = trackMSSAnalysis(tracks,probDim,momentOrders,alphaMSS,fitError,sigmaG)
+function [trackClass,mssSlope,genDiffCoef,scalingPower,normDiffCoef] ...
+    = trackMSSAnalysis(tracks,probDim,momentOrders,alphaMSS)
 %TRACKMSSANALYSIS classifies trajectories based on their moment scaling spectrum
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -124,9 +124,7 @@ numOrders = length(momentOrders);
 if nargin < 4 || isempty(alphaMSS)
     alphaMSS = 0.1;
 end
-if nargin < 5 
-    fitError = [];
-end
+
 %get number of tracks and frames
 [numTracks,numFramesMovie] = size(tracks);
 numFramesMovie = numFramesMovie / 8;
@@ -219,7 +217,7 @@ mssSlope = NaN(numTracks,1);
 genDiffCoef = NaN(numTracks,numOrders);
 scalingPower = NaN(numTracks,numOrders);
 normDiffCoef = NaN(numTracks,1);
-estimError = NaN(numTracks,1);
+
 %% moments and their scaling with time
 
 for iTrack = indx4diff'
@@ -288,14 +286,8 @@ for iTrack = indx4diff'
     indxGood = find(~isnan(scalingPowerT));
     momentOrders4fit = momentOrders(indxGood);
     scalingPowerT = scalingPowerT(indxGood);
-    scalingPowerO = scalingPowerT;
     genDiffCoefT = genDiffCoefT(indxGood);
-    if ~isempty(fitError)
-        
-        [scaleM,xF] = fitMSS(coordinates,standardDevs,maxLag,momentOrders,probDim,scalingPowerT(2:end),genDiffCoefT(2:end),sigmaG);
-        scalingPowerT = [0,scaleM];
-        estimError(iTrack) = xF(1);
-    end
+
     %if there are non-NaN scaling powers
     if ~isempty(scalingPowerT)
 
@@ -329,29 +321,6 @@ for iTrack = indx4diff'
         mssSlope(iTrack) = mssSlopeT;
         genDiffCoef(iTrack,:) = genDiffCoefT;
         scalingPower(iTrack,:) = scalingPowerT;
-        timeT = trackMoments(1:maxLag,3);
-        opts = optimoptions(@lsqnonlin,'Jacobian','on','TolFun',1e-9);
-        
-        %To calculate the diffusion coefficient, first separate into
-        %directed or otherwise, then fit
-        if ~isempty(fitError)
-            if trackClass(iTrack) ==3
-                %Need to think of alternative for other dimensions
-                dispT = sqrt((coordinates(2:end,1)-coordinates(1:end-1,1)).^2+(coordinates(2:end,2)-coordinates(1:end-1,2)).^2);
-                velInit = nanmean(dispT);
-                minLag = min(length(timeT),5);
-                fun2 = @(x)funJ2Direct(x,minLag,trackMoments,probDim);
-                x02 = [sigmaG,genDiffCoefT(3),scalingPowerT(3),velInit];
-                x2 = lsqnonlin(fun2,x02,[0,0.5*genDiffCoefT(3),scalingPowerT(3)-0.5,0.5*velInit],[sigmaG.*2,1.5*genDiffCoefT(3),scalingPowerT(3)+0.5,1.5*velInit],opts);
-                normDiffCoefT = x2(2);  
-            else
-                minLag = min(length(timeT),5);
-                fun2 = @(x)funJ2(x,minLag,trackMoments,probDim);
-                x02 = [sigmaG,genDiffCoefT(3),scalingPowerT(3)];
-                x2 = lsqnonlin(fun2,x02,[0,0.5*genDiffCoefT(3),scalingPowerT(3)-0.5],[sigmaG.*2,1.5*genDiffCoefT(3),scalingPowerT(3)+0.5],opts);
-                normDiffCoefT = x2(2);  
-            end
-        end
         normDiffCoef(iTrack) = normDiffCoefT;
         
     end
@@ -367,29 +336,6 @@ y = logSlope + x;
 d = ones(size(x));
 
 
-function [F,J] = funJ2Direct(x,minLag,trackMoments,probDim)
-timeT = ((1:minLag)');
-F = (probDim*2*x(2)*(timeT.^x(3))+((x(4).^2).*(timeT.^2))+(probDim*2*(x(1).^2)))-trackMoments(1:minLag,3);
-% F = (probDim*2*x(1)*(time.^x(2)))-trackMoments(1:maxLag,3);
-if nargout > 1
-    J = zeros(length(timeT),3);
-    J(timeT,1) = probDim.*4.*x(1);
-    J(timeT,2) = probDim.*2.*(timeT.^x(3));
-    J(timeT,3) = probDim.*2.*x(2).*log(timeT).*(timeT.^x(3));
-    J(timeT,4) = 2.*x(4).*(timeT.^2);
-end
-
-function [F,J] = funJ2(x,minLag,trackMoments,probDim)
-timeT = ((1:minLag)');
-F = (probDim*2*x(2)*(timeT.^x(3))+(probDim*2*(x(1).^2)))-trackMoments(1:minLag,3);
-% F = (probDim*2*x(1)*(time.^x(2)))-trackMoments(1:maxLag,3);
-if nargout > 1
-    J = zeros(length(timeT),3);
-    J(timeT,1) = probDim.*4.*x(1);
-    J(timeT,2) = probDim.*2.*(timeT.^x(3));
-    J(timeT,3) = probDim.*2.*x(2).*log(timeT).*(timeT.^x(3));
-    
-end
 %% thresholds
 
 % function mssThreshImm = threshMSSImm2D_p20(nTP)

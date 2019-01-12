@@ -126,7 +126,7 @@ function [movieInfo,exceptions,localMaxima,background,psfSigma] = ...
 %
 %Khuloud Jaqaman, September 2007
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -678,9 +678,10 @@ numGoodImages = length(goodImages);
 %clear some variables
 clear ImageIntegF
 
-%% PSF sigma estimation
-
-if numSigmaIter
+%% PSF sigma estimation /Upper Bounds estimation
+%Either use this section to calculate the psf sigma or merely calculate the
+%upper bounds and estimate sigma per psf later
+if numSigmaIter 
     
     %specify which parameters to fit for sigma estimation
     fitParameters = [{'X1'} {'X2'} {'A'} {'Sxy'} {'B'}];
@@ -877,12 +878,14 @@ end %(if numSigmaIter)
 
 %initialize movieInfo
 clear movieInfo
-movieInfo = repmat(struct('xCoord',[],'yCoord',[],'amp',[]),numImagesRaw,1);
+movieInfo = repmat(struct('xCoord',[],'yCoord',[],'amp',[],'sigma',[]),numImagesRaw,1);
 
 %initialize progress display
 if verbose
     if strcmp(calcMethod,'g')
         progressText(0,'Mixture-model fitting');
+    elseif strcmp(calcMethod,'gv')
+        progressText(0,'Mixture-model fitting with variable sigma');
     else
         progressText(0,'Centroid calculation');
     end
@@ -908,6 +911,13 @@ for iImage = goodImages(:)'
             featuresInfo = detectSubResFeatures2D_V2(imageRaw,...
                 localMaxima(iImage).cands,psfSigma,testAlpha,visual,...
                 doMMF,1,0,mean(bgStdRaw(:)));
+        elseif strcmp(calcMethod,'gv')
+            %doMMF is not used in this option and an upper bounds for psf
+            %Sigma is used (currently 5 times psf sigma)
+            featuresInfo = detectSubResFeatures2D_V2(imageRaw,...
+                localMaxima(iImage).cands,psfSigma,testAlpha,visual,...
+                doMMF,1,0,mean(bgStdRaw(:)),1);
+            %Perhaps variable sigma should be output again
         else
             featuresInfo = centroidSubResFeatures2D(imageRaw,...
                 localMaxima(iImage).cands,psfSigma,visual,1,0);
@@ -936,6 +946,8 @@ for iImage = goodImages(:)'
     if verbose
         if strcmp(calcMethod,'g')
             progressText(iImage/numImagesRaw,'Mixture-model fitting');
+        elseif strcmp(calcMethod,'gv')
+            progressText(iImage/numImagesRaw,'Mixture-model fitting with variable sigma');
         else
             progressText(iImage/numImagesRaw,'Centroid calculation');
         end

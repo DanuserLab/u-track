@@ -8,7 +8,7 @@ function out = cliGUI(string,hfig1,procID,varargin)
     %
     % See also dbcont, dbquit, processGUI_ApplyFcn, noSettingsProcessGUI
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

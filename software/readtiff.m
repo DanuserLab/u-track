@@ -16,7 +16,7 @@
 % Supported formats: unsigned integer, signed integer, single, and double TIFFs
 %                    as well as 8-bit/channel RGB stacks (returned as a cell array)
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

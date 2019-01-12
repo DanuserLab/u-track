@@ -2,7 +2,7 @@ classdef Package < hgsetget
     % Defines the abstract class Package from which every user-defined packages
     % will inherit. This class cannot be instantiated.
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -12,7 +12,7 @@ function fileExt = bfGetFileExtensions
 %      format.
 %      This cell array is formatted to be used with uigetfile funciton.
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -49,7 +49,7 @@ function [longVecS,longVecE,shortVecS,shortVecE,shortVecS3D,shortVecE3D,...
 %                        and end.
 %       trackStartTime : Starting time of all tracks.            gapCloseParam.timeWindow = 2;
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

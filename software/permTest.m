@@ -21,7 +21,7 @@ function [H, pValue] = permTest(s1, s2, varargin)
 %   y = [10 27 31 40 46 50 52 104 146];
 %   z = [16 23 38 94 99 141 197];
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

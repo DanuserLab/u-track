@@ -37,7 +37,7 @@ function cMap = randomColormap(n,seed,otherColormap)
 % colorMap - an nx3 RGB colormap
 %
 %
-% Copyright (C) 2018, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
