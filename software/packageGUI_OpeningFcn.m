@@ -74,13 +74,11 @@ ip.addRequired('eventdata',@(x) isstruct(x) || isempty(x));
 ip.addRequired('handles',@isstruct);
 ip.addRequired('packageName',@ischar);
 ip.addOptional('MO',[],@(x) isa(x,'MovieObject'));
-ip.addParameter('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
-% ip.addParameter('menu_parallel',true, @(x) islogical(x) || x==1 || x==0);
-% ip.addParameter('menu_debug',true, @(x) islogical(x) || x==1 || x==0);
-ip.addParameter('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
-ip.addParameter('packageConstr','',@(x) isa(x,'function_handle'));
-ip.addParameter('packageIndx',{},@iscell);
-ip.addParameter('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
+ip.addParamValue('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
+ip.addParamValue('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
+ip.addParamValue('packageConstr','',@(x) isa(x,'function_handle'));
+ip.addParamValue('packageIndx',{},@iscell);
+ip.addParamValue('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
 ip.parse(hObject,eventdata,handles,packageName,varargin{:});
 
 % Read the package name
@@ -384,24 +382,11 @@ set(handles.pushbutton_run, 'Callback', @(hObject,eventdata)packageGUI_RunFcn(hO
 set(handles.menu_about_gpl,'UserData','http://www.gnu.org/licenses/gpl.html')
 set(handles.menu_about_lccb,'UserData','http://www.utsouthwestern.edu/labs/danuser/')
 set(handles.menu_about_lccbsoftware,'UserData','http://www.utsouthwestern.edu/labs/danuser/software/')
-% 
-% if ~ip.Results.menu_parallel 
-%     para_menu_handles = findall(0,'-regexp','Tag','menu_parallel$');
-%     para_menu_handles.Enable = 'off';
-%     userData.para_menu_handles = 'off';
-% end
-% 
-% if ~ip.Results.menu_debug 
-%     debug_menu_handles = findall(0,'-regexp','Tag','menu_debug$');
-%     debug_menu_handles.Enable = 'off';
-%     userData.debug_menu_handles = 'off';
-% end
-
+ 
 % Update handles structure
 set(handles.figure1,'UserData',userData);
 guidata(hObject, handles);
 set(Img,'ButtonDownFcn',@icon_ButtonDownFcn);
-
 
 packageGUI_RefreshFcn(handles, 'initialize')
 end
