@@ -31,7 +31,12 @@ if ~isempty(ud) && isfield(ud, 'class')
     
     helpFile=[ud.class '.pdf'];
     if exist(helpFile, 'file')
-        open(helpFile)
+        if ispc || ismac
+            open(helpFile)
+        elseif isunix
+            helpFilePath = which(helpFile);
+            system(['evince ' helpFilePath ' &']);
+        end
     else
         warndlg(['Cannot find Help file:', helpFile], 'modal');
         return
