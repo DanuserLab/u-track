@@ -30,6 +30,7 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
         rois_ =  MovieData.empty(1,0);   % Region(s) of interest
         parent_ =  MovieData.empty(1,0); % Parent movie(s)
         bfSeries_               % Series of the image file
+        stitchFiles_ = false;   % Logical, true if BF should use multiple files
    end
     
     
@@ -139,11 +140,13 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
                     else
                         ip.addParameter('outputDirectory','', @ischar);
                     end
+                    ip.addParamValue('stitchFiles',false,@islogical);
                     ip.KeepUnmatched = true;
                     ip.parse(varargin{:});
                     
                     obj.channels_ = path_or_channels;
                     obj.outputDirectory_ = ip.Results.outputDirectory;
+                    obj.stitchFiles_ = ip.Results.stitchFiles;
                     if ~isempty(fieldnames(ip.Unmatched))
                         set(obj, ip.Unmatched)
                     end
@@ -665,7 +668,7 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
         function r = initReader(obj)
             % Initialize the reader based on the type of movie
             if obj.isBF()
-                r = BioFormatsReader(obj.channels_(1).channelPath_, obj.bfSeries_);
+                r = BioFormatsReader(obj.channels_(1).channelPath_, obj.bfSeries_,'stitchFiles',obj.stitchFiles_);
             elseif obj.isOmero()
                 r = OmeroReader(obj.getOmeroId(), obj.getOmeroSession());
             elseif obj.isHCS()

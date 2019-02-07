@@ -40,6 +40,7 @@ classdef  BioFormatsReader < Reader
             ip.addParamValue('reader', [], @(x) isa(x, 'loci.formats.IFormatReader'));
             % Directory for memo file
             ip.addParamValue('directory',bfGetMemoDirectory(), @ischar);
+            ip.addParamValue('stitchFiles',false,@islogical);
             ip.parse(varargin{:});
             
             % Initialize Bio-Formats and log4j
@@ -49,7 +50,9 @@ classdef  BioFormatsReader < Reader
             if ~isempty(ip.Results.reader),
                 obj.formatReader = ip.Results.reader;
             else
-                obj.formatReader = bfGetMemoizer([], ip.Results.directory);
+                obj.formatReader = bfGetMemoizer([], ...
+                                                 ip.Results.directory, ...
+                                                 ip.Results.stitchFiles);
                 try
                     obj.formatReader.setId(obj.id);
                 catch

@@ -1,4 +1,4 @@
-function [ r, bfMemoDir] = bfGetMemoizer( reader , bfMemoDir)
+function [ r, bfMemoDir] = bfGetMemoizer( reader , bfMemoDir, varargin)
 %bfGetMemoizer Get loci.formats.Memoizer
 %
 % INPUT
@@ -36,13 +36,14 @@ function [ r, bfMemoDir] = bfGetMemoizer( reader , bfMemoDir)
 
     if(nargin < 1 || isempty(reader))
         % Create an empty Bio-Formats if non-given
-        reader = bfGetReader();
+        % Passthrough other parameters like stitchFiles
+        reader = bfGetReader('',varargin{:});
     end
-    if(nargin < 2)
+    if(nargin < 2 || isempty(bfMemoDir))
         bfMemoDir = bfGetMemoDirectory();
     end
     if(ischar(reader))
-        reader = bfGetReader(reader);
+        reader = bfGetReader(reader,varargin{:});
     end
     
     minimumTimeElapsed = 0;

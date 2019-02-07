@@ -57,6 +57,7 @@ ip.addOptional('importMetadata',true,@islogical);
 ip.addParamValue('outputDirectory',[],@ischar);
 ip.addParamValue('askUser', false, @isscalar);
 ip.addParamValue('class',@MovieData,@(c) ischar(c) || isa(c,'function_handle'));
+ip.addParamValue('stitchFiles',false,@islogical);
 ip.parse(dataPath,varargin{:});
 
 constructor = ip.Results.class;
@@ -84,7 +85,12 @@ end
 try
     % autoload java path and configure log4j
     bfInitLogging();
-    r = bfGetMemoizer();
+    if(ip.Results.stitchFiles)
+        % We must pass a value for id
+        r = bfGetMemoizer(bfGetReader('',ip.Results.stitchFiles));
+    else
+        r = bfGetMemoizer();
+    end
     r.setId(dataPath);
     r.setSeries(0);
 catch bfException
@@ -111,6 +117,11 @@ for i = 1 : nSeries
         movieArgs = getMovieMetadata(r, iSeries);
     else
         movieArgs = {};
+    end
+    
+    % Stitch files
+    if ip.Results.stitchFiles
+        movieArgs = [movieArgs 'stitchFiles' ip.Results.stitchFiles];
     end
     
     % Read number of channels, frames and stacks
