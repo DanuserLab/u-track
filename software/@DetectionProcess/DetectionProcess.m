@@ -208,7 +208,6 @@ classdef DetectionProcess < ImageAnalysisProcess
                  @NucleiDetectionProcess;
                  @PointSourceDetectionProcess;
                  @PointSourceDetectionProcess3D;
-                 @ExternalDetectionProcess;
                 };
 
             % If input, check if 2D or 3D movie(s).
