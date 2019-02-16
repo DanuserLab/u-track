@@ -73,6 +73,109 @@ classdef ExternalDetectionProcess < DetectionProcess
                 end
             end
         end
+        
+        function varargout = loadChannelOutput(obj,iChan,varargin)
+                 
+            if ~obj.owner_.is3D()
+                varargout{1} = obj.loadChannelOutput@DetectionProcess(iChan, varargin{:});
+            else
+                
+                % Input check
+                outputList = {'movieInfo', 'detect3D','detect3Dall', 'detectionsLabRef'};
+                ip = inputParser;
+                ip.addRequired('iChan',@(x) ismember(x,1:numel(obj.owner_.channels_)));
+                ip.addOptional('iFrame',1:obj.owner_.nFrames_,...
+                    @(x) ismember(x,1:obj.owner_.nFrames_));
+                ip.addParameter('useCache',true,@islogical);
+                ip.addParameter('iZ',[], @(x) ismember(x,1:obj.owner_.zSize_));
+                ip.addParameter('output', outputList{1}, @(x) all(ismember(x,outputList)));
+                ip.addParameter('projectionAxis3D','Z', @(x) ismember(x,{'Z','X','Y','three'}));
+                ip.parse(iChan, varargin{:})
+                output = ip.Results.output;
+                iFrame = ip.Results.iFrame;
+                projAxis3D = ip.Results.projectionAxis3D;
+                iZ = ip.Results.iZ;
+                varargout = cell(numel(output), 1);
+                ZXRatio = obj.owner_.pixelSizeZ_/obj.owner_.pixelSize_;
+                
+                if ischar(output),output={output}; end
+                
+                for iout = 1:numel(output)
+                    switch output{iout}
+                        case 'detect3D'
+                            s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
+                            
+                            if numel(ip.Results.iFrame)>1
+                                v1 = s.movieInfo;
+                            else
+                                v1 = s.movieInfo(iFrame);
+                            end
+                            if ~isempty(v1.xCoord) && ~isempty(iZ)
+                                % Only show Detections in Z.
+                                zThick = 1;
+                                tt = table(v1.xCoord(:,1), v1.yCoord(:,1), v1.zCoord(:,1), 'VariableNames', {'xCoord','yCoord','zCoord'});
+                                valid_states = (tt.zCoord>=(iZ-zThick) & tt.zCoord<=(iZ+zThick));
+                                dataOut = tt{valid_states, :};
+                                
+                                if isempty(dataOut) || numel(dataOut) <1 || ~any(valid_states)
+                                    dataOut = [];
+                                end
+                            else
+                                dataOut = [];
+                            end
+                            dataOutz = obj.convertProjection3D(dataOut, projAxis3D, ZXRatio);
+                            varargout{iout} = dataOutz;
+                            
+                        case 'detect3Dall'
+                            s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
+                            
+                            if numel(ip.Results.iFrame)>1
+                                v1 = s.movieInfo;
+                            else
+                                v1 = s.movieInfo(iFrame);
+                            end
+                            if ~isempty(v1.xCoord) && ~isempty(iZ)
+                                % Only show Detections in Z.
+                                %                             zThick = 1;
+                                tt = table(v1.xCoord(:,1), v1.yCoord(:,1), v1.zCoord(:,1), 'VariableNames', {'xCoord','yCoord','zCoord'});
+                                valid_states = (tt.zCoord>=1 & tt.zCoord<=obj.owner_.zSize_);
+                                dataOut = tt{:, :};
+                                
+                                if isempty(dataOut) || numel(dataOut) <1 || ~any(valid_states)
+                                    dataOut = [];
+                                end
+                            else
+                                dataOut = [];
+                            end
+                            dataOutz = obj.convertProjection3D(dataOut, projAxis3D, ZXRatio);
+                            varargout{iout} = dataOutz;
+                        case 'movieInfo'
+                            varargout{iout} = obj.loadChannelOutput@DetectionProcess(iChan, varargin{:});
+                        case 'detectionsLabRef'
+                            varargout{iout} = load(obj.outFilePaths_{2, iChan}, 'detectionLabRef');
+                        otherwise
+                            error('Incorrect Output Var type');
+                    end
+                end
+                
+            end
+            
+        end
+        
+        function output = getDrawableOutput(obj)
+            output = getDrawableOutput@DetectionProcess(obj);
+            if obj.owner_.is3D()
+                output(1).name='Detected Objects by zSlice';
+                output(1).var = 'detect3D';
+                output(1).formatData=@DetectionProcess.formatOutput3D;
+                
+                output(2) = getDrawableOutput@DetectionProcess(obj);
+                output(2).name='Detected Objects';
+                output(2).var = 'detect3Dall';
+                output(2).formatData=@DetectionProcess.formatOutput3D;
+            end
+        end
+        
     end
     methods (Static)
         
