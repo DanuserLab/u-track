@@ -98,7 +98,8 @@ if isempty(userData.crtProc)
     value = numel(userData.subProcClassNames)+1;
     set(handles.pushbutton_set, 'Enable', 'off');
 else
-    value = find(strcmp(userData.crtProc.getName,subProcNames));
+%     value = find(strcmp(userData.crtProc.getName,subProcNames));
+    value = find(cellfun(@isempty, strfind(subProcNames, userData.crtProc.getName))==0,1);
 end
 
 existSubProc = @(proc) any(cellfun(@(x) isa(x,proc),userData.MD.processes_));

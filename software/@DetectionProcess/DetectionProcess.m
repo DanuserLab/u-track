@@ -207,8 +207,8 @@ classdef DetectionProcess < ImageAnalysisProcess
                  @AnisoGaussianDetectionProcess;
                  @NucleiDetectionProcess;
                  @PointSourceDetectionProcess;
+                 @ExternalDetectionProcess; % both 2D and 3D
                  @PointSourceDetectionProcess3D;
-                 @ExternalDetectionProcess;
                 };
 
             % If input, check if 2D or 3D movie(s).
@@ -233,11 +233,11 @@ classdef DetectionProcess < ImageAnalysisProcess
             elseif MD.is3D
                 disp('Detected 3D movie');
                 disp('Displaying 3D Detection processes only');
-                procClasses(1:end-1) = [];
+                procClasses(1:5) = [];
             elseif ~MD.is3D
                 disp('Detected 2D movie');
                 disp('Displaying 2D Detection processes only');
-                procClasses(6) = [];
+                procClasses(7) = [];
             end
             procClasses = cellfun(@func2str, procClasses, 'Unif', 0);
         end

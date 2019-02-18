@@ -154,7 +154,7 @@ classdef PointSourceDetectionProcess3D < DetectionProcess
     methods (Static)
         
         function name = getName()
-            name = 'Detection in 3D';
+            name = 'Point source detection in 3D'; % name need to contain 'Point source detection', otherwise won't see it in the list of DetectionProcess on abstractProcessGUI.
         end
         
         function h = GUI()
