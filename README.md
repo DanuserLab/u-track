@@ -14,4 +14,6 @@ For more information, please see [Jaqaman et al., Nature Methods 5, pp. 695-702 
 
 [Danuser Lab Website](https://www.utsouthwestern.edu/labs/danuser/)
 
+[Jaqaman Lab Website](https://www.utsouthwestern.edu/labs/jaqaman/)
+
 [Software Links](https://www.utsouthwestern.edu/labs/danuser/software/)
