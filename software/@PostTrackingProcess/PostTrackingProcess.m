@@ -54,6 +54,7 @@ classdef PostTrackingProcess < DataProcessingProcess
         function procClasses = getConcreteClasses(varargin)
             procClasses = ...
                 {'MotionAnalysisProcess';
+                 'TransientDiffusionAnalysisProcess';
                  'CometPostTrackingProcess';                
                  'TrackGroupingProcess';
                  'CometPostTrackingProcess3D'};
