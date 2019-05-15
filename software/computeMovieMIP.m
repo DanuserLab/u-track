@@ -63,7 +63,7 @@ end
 thisProcess.setInFilePaths(inFilePaths);
 
 % ================[OUTPUT]===========================
-mkClrDir(p.OutputDirectory);
+mkClrDir(p.OutputDirectory, false);
 outFilePaths = cell(5, numel(MD.channels_));
 for i = p.ChannelIndex;    
     outFilePaths{1,i} = [p.OutputDirectory filesep 'ch' num2str(i) filesep 'XY'];

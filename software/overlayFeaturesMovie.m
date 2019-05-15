@@ -325,7 +325,7 @@ for iFrame = 1 : numFramesMovie
     
     %plot features
     if ~isempty(movieInfo(iFrame).xCoord)
-        plot(movieInfo(iFrame).xCoord(:,1),movieInfo(iFrame).yCoord(:,1),'ro','MarkerSize',6);
+        plot(movieInfo(iFrame).xCoord(:,1),movieInfo(iFrame).yCoord(:,1),'yo','MarkerSize',6);
     end
     
     %add frame to movie if movie is saved
