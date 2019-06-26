@@ -268,15 +268,47 @@ set(handles.(templateTag{6}),'CData',userData.openIconData);
 
 % templateTag{6} = 'pushbutton_clear'; To be implemented someday?
 procTag=templateTag;
-set(handles.figure1,'Position',...
-    get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
-set(handles.panel_movie,'Position',...
-    get(handles.panel_movie,'Position')+(nProc-1)*[0 40 0 0])
-set(handles.panel_proc,'Position',...
-    get(handles.panel_proc,'Position')+(nProc-1)*[0 0 0 40])
-set(handles.text_status, 'Position',...
-    get(handles.text_status,'Position')+(nProc-1)*[0 40 0 0])      
 
+
+figure1Pos = get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40];
+screenSize = get(0,'ScreenSize');
+
+if figure1Pos(4) <= screenSize(4)
+    
+    set(handles.figure1,'Position',...
+        get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
+    set(handles.panel_movie,'Position',...
+        get(handles.panel_movie,'Position')+(nProc-1)*[0 40 0 0])
+    set(handles.panel_proc,'Position',...
+        get(handles.panel_proc,'Position')+(nProc-1)*[0 0 0 40])
+    set(handles.text_status, 'Position',...
+        get(handles.text_status,'Position')+(nProc-1)*[0 40 0 0])
+    
+    delete(handles.slider1);
+    
+else
+    default_fig1Pos = get(handles.figure1,'Position');
+    set(handles.figure1,'Position',...
+        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-100])
+
+    default_panelMoviePos = get(handles.panel_movie,'Position');
+    set(handles.panel_movie,'Position',...
+        [default_panelMoviePos(1) screenSize(4)-100-default_panelMoviePos(4) ...
+        default_panelMoviePos(3) default_panelMoviePos(4)])
+
+    default_panelProcPos = get(handles.panel_proc,'Position');
+    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-100)+default_panelMoviePos(4)+66.8;
+
+    set(handles.panel_proc,'Position',...
+        [default_panelProcPos(1) default_panelProcPos(2)-sliderMoveSize ...
+        default_panelProcPos(3) default_panelProcPos(4)+(nProc-1)*40])
+
+    default_textStatusPos = get(handles.text_status,'Position');
+    set(handles.text_status, 'Position',...
+        [default_textStatusPos(1) screenSize(4)-100-165.2 ...
+        default_textStatusPos(3) default_textStatusPos(4)])
+end
+ 
 % Replicate templates ui controls for each process
 for i = 1 : nProc
     for j = 1 : length(templateTag)
