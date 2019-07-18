@@ -277,7 +277,7 @@ procTag=templateTag;
 figure1Pos = get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40];
 screenSize = get(0,'ScreenSize');
 
-if figure1Pos(4) <= screenSize(4)-70
+if figure1Pos(4) <= screenSize(4)-175
     
     set(handles.figure1,'Position',...
         get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
@@ -293,15 +293,15 @@ if figure1Pos(4) <= screenSize(4)-70
 else
     default_fig1Pos = get(handles.figure1,'Position');
     set(handles.figure1,'Position',...
-        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-100])
+        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-175])
 
     default_panelMoviePos = get(handles.panel_movie,'Position');
     set(handles.panel_movie,'Position',...
-        [default_panelMoviePos(1) screenSize(4)-100-default_panelMoviePos(4) ...
+        [default_panelMoviePos(1) screenSize(4)-175-default_panelMoviePos(4) ...
         default_panelMoviePos(3) default_panelMoviePos(4)])
 
     default_panelProcPos = get(handles.panel_proc,'Position');
-    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-100)+default_panelMoviePos(4)+66.8;
+    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-175)+default_panelMoviePos(4)+66.8;
 
     set(handles.panel_proc,'Position',...
         [default_panelProcPos(1) default_panelProcPos(2)-sliderMoveSize ...
@@ -309,7 +309,7 @@ else
 
     default_textStatusPos = get(handles.text_status,'Position');
     set(handles.text_status, 'Position',...
-        [default_textStatusPos(1) screenSize(4)-100-165.2 ...
+        [default_textStatusPos(1) screenSize(4)-175-165.2 ...
         default_textStatusPos(3) default_textStatusPos(4)])
 
     new_fig1Pos = get(handles.figure1,'Position');
