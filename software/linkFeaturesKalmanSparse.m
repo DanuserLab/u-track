@@ -304,7 +304,7 @@ featLifetime = ones(movieInfo(1).num,1);
 %it can be that the final number of tracks is even larger than this worst
 %case scenario. Every time the auxiliary matrices (defined below) run out
 %of rows, another "numTracksWorstCase" rows are added to them.
-numTracksWorstCase = max(1,round(sum(numFeatures)/10));
+numTracksWorstCase = round(sum(numFeatures)/10);
 
 %initialize auxiliary matrices for storing information related to tracks
 %that end in the middle of the movie

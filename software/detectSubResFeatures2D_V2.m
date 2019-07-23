@@ -27,20 +27,15 @@ function [detectedFeatures,clustersMMF,imageN3,errFlag] = ...
 %                    0 otherwise. Optional. Default: 0.
 %       bgNoiseSigma:Standard deviation of background noise. Optional. If
 %                    not input, the code will estimate it from the image.
-%       varSigma   : 1 to estimate Gaussian sigma from fit, 0 to keep fixed
-%                    at input value (psfSigma). Optional. Default: 0.
 %
 %       All optional variables can be entered as [] to use default values.
 %
 %OUTPUT detectedFeatures: Structure with fields:
 %             .xCoord    : Image coordinate system x-coordinate of detected
 %                          features [x dx] (in pixels).
-%             .yCoord    : Image coordinate system y-coordinate of detected
+%             .yCoord    : Image coorsinate system y-coordinate of detected
 %                          features [y dy] (in pixels).
-%             .amp       : Amplitudes of Gaussians fitting detected features [a da].
-%             .sigma     : Standard deviation of Gaussians fitting detected
-%                          features [sigma dsigma]. Output as empty if
-%                          sigma is not estimated (when input varSigma = 0).
+%             .amp       : Amplitudes of PSFs fitting detected features [a da].
 %       clustersMMF: Array of clusters of sub-resolution features.
 %                    Structure with fields:
 %             .position  : Position of each feature in image coordinate
