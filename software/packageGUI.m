@@ -41,7 +41,7 @@ function varargout = packageGUI(varargin)
 
 % Edit the above text to modify the response to help packageGUI
 
-% Last Modified by GUIDE v2.5 01-Aug-2017 17:17:12
+% Last Modified by GUIDE v2.5 21-Jun-2019 15:56:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -247,7 +247,7 @@ set(handles.figure1, 'UserData', userData);
 
 % --- Executes on button press in pushbutton_set.
 function pushbutton_set_Callback(hObject, ~, handles)
-
+global deactivateCLIBackup
 userData = get(handles.figure1, 'UserData');
 prop=get(hObject,'Tag');
 procID = str2double(prop(length('pushbutton_set_')+1:end));
@@ -258,11 +258,14 @@ crtProcGUI =eval([crtProc '.GUI']);
 try 
     userData.setFig(procID) = crtProcGUI('mainFig',handles.figure1,procID);
 catch ME
-    msgbox(ME.message)
-%     rethrow(ME)
-    warning('Loading Custom GUI failed! -- Running CLI parameter config as BACKUP - follow instructions');
-    uiwait(msgbox({'Loading Custom GUI failed!','Running CLI parameter config as BACKUP','Please follow instructions'}));
-    userData.setFig(procID) = cliGUI('mainFig',handles.figure1,procID);
+    if exist('deactivateCLIBackup','var') == 1 && deactivateCLIBackup
+        rethrow(ME)
+    else
+        msgbox(ME.message)
+        warning('Loading Custom GUI failed! -- Running CLI parameter config as BACKUP - follow instructions');
+        uiwait(msgbox({'Loading Custom GUI failed!','Running CLI parameter config as BACKUP','Please follow instructions'}));
+        userData.setFig(procID) = cliGUI('mainFig',handles.figure1,procID);
+    end
 end
 
 set(handles.figure1, 'UserData', userData);
@@ -584,4 +587,34 @@ if handles.checkbox_tagName.Value == 0;
     set(handles.processTagLabels, 'Visible', 'off')
 else
     set(handles.processTagLabels, 'Visible', 'on')
+end
+
+
+% --- Executes on slider movement.
+function slider1_Callback(hObject, eventdata, handles)
+% hObject    handle to slider1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+slider_value = get(hObject, 'Value');
+panel_proc_pos = get(handles.panel_proc, 'Position');
+figure1_pos = get(handles.figure1, 'Position');
+panel_movie_pos = get(handles.panel_movie, 'Position');
+
+ set(handles.panel_proc, 'Position', [panel_proc_pos(1), ...
+    (figure1_pos(4)-panel_movie_pos(4)-66.8-panel_proc_pos(4))*slider_value+66.8, ...
+    panel_proc_pos(3), panel_proc_pos(4)]);
+
+
+% --- Executes during object creation, after setting all properties.
+function slider1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
 end

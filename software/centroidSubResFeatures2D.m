@@ -18,16 +18,11 @@ function [detectedFeatures,imageN3,errFlag] = centroidSubResFeatures2D(...
 %OUTPUT detectedFeatures: Structure with fields:
 %             .xCoord    : Image coordinate system x-coordinate of detected
 %                          features [x dx] (in pixels).
-%             .yCoord    : Image coorsinate system y-coordinate of detected
+%             .yCoord    : Image coordinate system y-coordinate of detected
 %                          features [y dy] (in pixels).
-%             .amp       : Amplitudes of PSFs fitting detected features [a da].
-%       imageN3    : Image with labeled features. Blue: those from cands;
-%                    Red: those from mixture-model fitting; Magenta: those
-%                    from MMF which coincide with those from cands.
-%                    Will be output only if visual = 1.
-%       errFlag    : 0 if function executes normally, 1 otherwise.
-%
-%Khuloud Jaqaman, July 2011
+%             .amp       : Amplitudes of detected features [a da].
+%             .sigma     : Empty really, this is output just to maintain
+%                          consistency with detectSUbResFeatures2D_V2.
 %
 % Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
@@ -47,6 +42,14 @@ function [detectedFeatures,imageN3,errFlag] = centroidSubResFeatures2D(...
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
+
+%       imageN3    : Image with labeled features. Blue: those from cands;
+%                    Red: those from mixture-model fitting; Magenta: those
+%                    from MMF which coincide with those from cands.
+%                    Will be output only if visual = 1.
+%       errFlag    : 0 if function executes normally, 1 otherwise.
+%
+%Khuloud Jaqaman, July 2011
 
 %% Output
 
@@ -152,6 +155,8 @@ for i = 1 : numLocMax
     detectedFeatures.amp(i,:) = [locMaxAmp(i)-bgAmp(i) 0];
     
 end
+
+detectedFeatures.sigma = [];
 
 %save output if requested
 if saveResults

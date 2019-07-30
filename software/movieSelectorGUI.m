@@ -41,7 +41,7 @@ function varargout = movieSelectorGUI(varargin)
 
 % Edit the above text to modify the response to help movieSelectorGUI
 
-% Last Modified by GUIDE v2.5 01-Dec-2016 17:13:50
+% Last Modified by GUIDE v2.5 10-Apr-2019 14:34:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -343,7 +343,12 @@ if any(strcmp([pathname filename], moviePaths))
 end
 
 try
-    MD = MovieData.load([pathname filename]);
+    % Add option for user to choose to do sanityCheck or not (updated 2019-04)
+    if get(handles.checkbox_sanityCheckMD, 'Value') == 1
+        MD = MovieData.load([pathname filename]);
+    else
+        MD = MovieData.loadMatFile([pathname filename]);
+    end
     userData.MD = horzcat(userData.MD, MD);
 catch ME
     msg = sprintf('Movie: %s\n\nError: %s\n\nMovie is not successfully loaded. Please refer to movie detail and adjust your data.', [pathname filename],ME.message);
@@ -373,7 +378,12 @@ if any(strcmp([pathname filename], movieListPaths))
 end
 
 try
-    ML = MovieList.load([pathname filename]);
+    % Add option for user to choose to do sanityCheck or not (updated 2019-04)
+    if get(handles.checkbox_sanityCheckML, 'Value') == 1
+        ML = MovieList.load([pathname filename]);
+    else
+        ML = MovieList.loadMatFile([pathname filename]);
+    end
 catch ME
     msg = sprintf('Movie: %s\n\nError: %s\n\nMovie is not successfully loaded. Please refer to movie detail and adjust your data.', [pathname filename],ME.message);
     errordlg(msg, 'Movie error','modal');
@@ -668,3 +678,21 @@ function menu_about_lccb_Callback(hObject, eventdata, handles)
 % hObject    handle to menu_about_lccb (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in checkbox_sanityCheckMD.
+function checkbox_sanityCheckMD_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_sanityCheckMD (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_sanityCheckMD
+
+
+% --- Executes on button press in checkbox_sanityCheckML.
+function checkbox_sanityCheckML_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_sanityCheckML (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_sanityCheckML

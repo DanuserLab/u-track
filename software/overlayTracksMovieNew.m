@@ -926,7 +926,7 @@ for iFrame = 1 : numFramesMovie
         %plot basic tracks
         plot([xCoord2plot0(1,:); xCoord2plot0],[yCoord2plot0(1,:); yCoord2plot0],...
             'Color',[1 0.7 0.7],'LineWidth',1); %light pink; the artificial repetition of the first line is for avoiding a mess in the first frame when tracks are not color-coded individually
-        
+                         
         %color individual tracks randomly if requested
         if colorTracks == 1
             plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0],'LineWidth',1); %orange
@@ -958,66 +958,69 @@ for iFrame = 1 : numFramesMovie
     %plot points (features + gaps + merges + splits)
     if ~onlyTracks
         
-        %blue stars: bad gaps
-        points2plot = find(pointStatus(:,iFrame)==-2);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',6);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',2);
-        
-        %cyan stars: good gaps
+% % % % % % % % % % % % % % % % % % % % % %         %blue stars: bad gaps
+% % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==-2);
+% % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % %         %cyan stars: good gaps
         points2plot = find(pointStatus(:,iFrame)==-1);
         if isempty(diffAnalysisRes)
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'c*','MarkerSize',6);
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'c*','MarkerSize',5);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'co','MarkerSize',6,'LineWidth',2);
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'c*','MarkerSize',10,'LineWidth',2);
         else
             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'w*','MarkerSize',6);
         end
-        
+% % % % % % % % % % % % % % % % % % % % % %         
         %red circles: detected feature in the middle of track with status 0
-        points2plot = find(pointStatus(:,iFrame)==1);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'ro','MarkerSize',6);
+% % % % % % % % % % % % % % %          points2plot = find(pointStatus(:,iFrame)==1);
+% % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'ro','MarkerSize',8);
         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %magenta circles: detected feature in the middle of track with status 1
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==2);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',10,'LineWidth',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %white circles: detected feature in the middle of track with status 2
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==3);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',5);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %green circles: detected feature just after birth
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==4);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',15,'LineWidth',2);
         
-        %magenta circles: detected feature in the middle of track with status 1
-        points2plot = find(pointStatus(:,iFrame)==2);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',6);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',2);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',10,'LineWidth',2);
-        
-        %white circles: detected feature in the middle of track with status 2
-        points2plot = find(pointStatus(:,iFrame)==3);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',6);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',5);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',2);
-        
-        %green circles: detected feature just after birth
-        points2plot = find(pointStatus(:,iFrame)==4);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',6);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',2);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',15,'LineWidth',2);
-        
-        %yellow circles: detected feature just before death
-        points2plot = find(pointStatus(:,iFrame)==5);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',6);
-        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',2);
+% % % % % %         %yellow circles: detected feature just before death
+% % % % % %         points2plot = find(pointStatus(:,iFrame)==5);
+% % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',6);
+% % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',2);
         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',15,'LineWidth',2);
         
-        %green diamonds: detected feature just before/after a split
+       %% SPLIT  %green diamonds: detected feature just before/after a split
         points2plot = find(pointStatus(:,iFrame)==6);
         if isempty(diffAnalysisRes)
-            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',10);
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',4);
+% % % % % %                         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',10);
+% % % % % %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',4);
+
+plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',6,'LineWidth',2);
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',15,'LineWidth',2);
         else
             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',10);
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',15,'LineWidth',2);
         end
         
-        %yellow diamonds: detected feature just before/after a merge
+     %% MERGE   %yellow diamonds: detected feature just before/after a merge
         points2plot = find(pointStatus(:,iFrame)==7);
         if isempty(diffAnalysisRes)
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',10);
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',4);
+% % % % % % % %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',6);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',6,'LineWidth',2);
             %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',15,'LineWidth',2);
         else
             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',10);
