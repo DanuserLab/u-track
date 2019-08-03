@@ -46,12 +46,12 @@ function hScaleBar = plotTimeStamp(time, varargin)
 ip = inputParser;
 ip.CaseSensitive = false;
 ip.addRequired('time', @ischar);
-ip.addParameter('Handle', gca, @ishandle)
-ip.addParameter('Location', 'southwest', @(x) any(strcmpi(x, {'northeast', 'southeast', 'southwest', 'northwest'})));
-ip.addParameter('FontName', 'Helvetica', @ischar);
-ip.addParameter('FontSize', .02, @isscalar);
-ip.addParameter('FontUnits', 'normalized', @ischar);
-ip.addParameter('Color', [1 1 1], @(x) isvector(x) && numel(x)==3);
+ip.addParamValue('Handle', gca, @ishandle)
+ip.addParamValue('Location', 'southwest', @(x) any(strcmpi(x, {'northeast', 'southeast', 'southwest', 'northwest'})));
+ip.addParamValue('FontName', 'Helvetica', @ischar);
+ip.addParamValue('FontSize', .02, @isscalar);
+ip.addParamValue('FontUnits', 'normalized', @ischar);
+ip.addParamValue('Color', [1 1 1], @(x) isvector(x) && numel(x)==3);
 
 % Parse input
 ip.parse(time, varargin{:});
