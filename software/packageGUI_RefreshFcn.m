@@ -53,6 +53,15 @@ if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
 if isa(userData.crtPackage, 'XcorrFluctuationPackage')
     field = 'ML';
 end
+
+if isa(userData.crtPackage, 'Morphology3DPackage')
+    para_menu_handles = findall(0,'-regexp','Tag','menu_parallel$');
+    para_menu_handles.Enable = 'off';
+
+    debug_menu_handles = findall(0,'-regexp','Tag','menu_debug$');
+    debug_menu_handles.Enable = 'off';    
+end
+
 set(handles.edit_path, 'String', ...
     [userData.(field)(userData.id).getPath filesep userData.(field)(userData.id).getFilename])
 

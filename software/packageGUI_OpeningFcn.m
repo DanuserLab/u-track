@@ -67,6 +67,10 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 
 % Sebastien Besson May 2011 (last modified Sep 2011()
 
+% Add a slider bar to the right of the listed processes when there is a
+% large number of processes and the height of the packageGUI is over the screensize.
+% Updated by Qiongjing (Jenny) Zou, Jun 2019
+
 % Input check
 ip = inputParser;
 ip.addRequired('hObject',@ishandle);
@@ -74,11 +78,13 @@ ip.addRequired('eventdata',@(x) isstruct(x) || isempty(x));
 ip.addRequired('handles',@isstruct);
 ip.addRequired('packageName',@ischar);
 ip.addOptional('MO',[],@(x) isa(x,'MovieObject'));
-ip.addParamValue('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
-ip.addParamValue('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
-ip.addParamValue('packageConstr','',@(x) isa(x,'function_handle'));
-ip.addParamValue('packageIndx',{},@iscell);
-ip.addParamValue('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
+ip.addParameter('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
+% ip.addParameter('menu_parallel',true, @(x) islogical(x) || x==1 || x==0);
+% ip.addParameter('menu_debug',true, @(x) islogical(x) || x==1 || x==0);
+ip.addParameter('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
+ip.addParameter('packageConstr','',@(x) isa(x,'function_handle'));
+ip.addParameter('packageIndx',{},@iscell);
+ip.addParameter('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
 ip.parse(hObject,eventdata,handles,packageName,varargin{:});
 
 % Read the package name
@@ -266,15 +272,53 @@ set(handles.(templateTag{6}),'CData',userData.openIconData);
 
 % templateTag{6} = 'pushbutton_clear'; To be implemented someday?
 procTag=templateTag;
-set(handles.figure1,'Position',...
-    get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
-set(handles.panel_movie,'Position',...
-    get(handles.panel_movie,'Position')+(nProc-1)*[0 40 0 0])
-set(handles.panel_proc,'Position',...
-    get(handles.panel_proc,'Position')+(nProc-1)*[0 0 0 40])
-set(handles.text_status, 'Position',...
-    get(handles.text_status,'Position')+(nProc-1)*[0 40 0 0])      
 
+
+figure1Pos = get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40];
+screenSize = get(0,'ScreenSize');
+
+if figure1Pos(4) <= screenSize(4)-70
+    
+    set(handles.figure1,'Position',...
+        get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
+    set(handles.panel_movie,'Position',...
+        get(handles.panel_movie,'Position')+(nProc-1)*[0 40 0 0])
+    set(handles.panel_proc,'Position',...
+        get(handles.panel_proc,'Position')+(nProc-1)*[0 0 0 40])
+    set(handles.text_status, 'Position',...
+        get(handles.text_status,'Position')+(nProc-1)*[0 40 0 0])
+    
+    delete(handles.slider1);
+    
+else
+    default_fig1Pos = get(handles.figure1,'Position');
+    set(handles.figure1,'Position',...
+        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-100])
+
+    default_panelMoviePos = get(handles.panel_movie,'Position');
+    set(handles.panel_movie,'Position',...
+        [default_panelMoviePos(1) screenSize(4)-100-default_panelMoviePos(4) ...
+        default_panelMoviePos(3) default_panelMoviePos(4)])
+
+    default_panelProcPos = get(handles.panel_proc,'Position');
+    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-100)+default_panelMoviePos(4)+66.8;
+
+    set(handles.panel_proc,'Position',...
+        [default_panelProcPos(1) default_panelProcPos(2)-sliderMoveSize ...
+        default_panelProcPos(3) default_panelProcPos(4)+(nProc-1)*40])
+
+    default_textStatusPos = get(handles.text_status,'Position');
+    set(handles.text_status, 'Position',...
+        [default_textStatusPos(1) screenSize(4)-100-165.2 ...
+        default_textStatusPos(3) default_textStatusPos(4)])
+
+    new_fig1Pos = get(handles.figure1,'Position');
+    default_slider1Pos = get(handles.slider1,'Position');
+    set(handles.slider1, 'Position', ...
+        [default_slider1Pos(1) default_slider1Pos(2) default_slider1Pos(3) ...
+        new_fig1Pos(4)-default_panelMoviePos(4)-66.8])
+end
+ 
 % Replicate templates ui controls for each process
 for i = 1 : nProc
     for j = 1 : length(templateTag)
@@ -382,11 +426,24 @@ set(handles.pushbutton_run, 'Callback', @(hObject,eventdata)packageGUI_RunFcn(hO
 set(handles.menu_about_gpl,'UserData','http://www.gnu.org/licenses/gpl.html')
 set(handles.menu_about_lccb,'UserData','http://www.utsouthwestern.edu/labs/danuser/')
 set(handles.menu_about_lccbsoftware,'UserData','http://www.utsouthwestern.edu/labs/danuser/software/')
- 
+% 
+% if ~ip.Results.menu_parallel 
+%     para_menu_handles = findall(0,'-regexp','Tag','menu_parallel$');
+%     para_menu_handles.Enable = 'off';
+%     userData.para_menu_handles = 'off';
+% end
+% 
+% if ~ip.Results.menu_debug 
+%     debug_menu_handles = findall(0,'-regexp','Tag','menu_debug$');
+%     debug_menu_handles.Enable = 'off';
+%     userData.debug_menu_handles = 'off';
+% end
+
 % Update handles structure
 set(handles.figure1,'UserData',userData);
 guidata(hObject, handles);
 set(Img,'ButtonDownFcn',@icon_ButtonDownFcn);
+
 
 packageGUI_RefreshFcn(handles, 'initialize')
 end
