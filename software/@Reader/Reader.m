@@ -1,4 +1,4 @@
-classdef  Reader < handle & matlab.mixin.Copyable
+classdef  Reader < handle
     % Reader is an abstract class for reading image data in a plane-wise
     % fashion
     %
@@ -95,10 +95,6 @@ classdef  Reader < handle & matlab.mixin.Copyable
     end
     
     methods ( Access = public )
-        function B = sizeCheckNeed(obj)
-            B=true;
-        end
-        
         function I = loadImage(obj, c, t, varargin)
         % loadImage reads a single image plane as a 2D, YX Matrix
         %
@@ -120,11 +116,6 @@ classdef  Reader < handle & matlab.mixin.Copyable
         % overridden by all subclasses written prior to 2015/01/01
          
             ip = inputParser;
-            if(~obj.sizeCheckNeed())
-                ip.addRequired('c', @isnumeric);
-                ip.addRequired('t', @isnumeric);
-                ip.addRequired('z', @isnumeric);
-            else
             ip.addRequired('c', ...
                 @(c) insequence_and_scalar(c, 1,   obj.getSizeC() ) );
             ip.addRequired('t', ... 
@@ -132,7 +123,6 @@ classdef  Reader < handle & matlab.mixin.Copyable
             ip.addOptional('z', 1, ...
                 @(z) insequence_and_scalar(z, 1,  obj.getSizeZ()) || ...
                     isempty(z));
-            end
             ip.parse(c, t, varargin{:});
             
             z = ip.Results.z;
@@ -166,31 +156,21 @@ classdef  Reader < handle & matlab.mixin.Copyable
         %   zStackMatrix = reader.loadStack(1,1);
         %   zStackMatrix = reader.loadStack(1);
         %
-        
+       
             % Input check
             ip = inputParser;
-            if(any(cellfun(@(s) strcmp(s,'ZSize'),(varargin(cellfun(@ischar,varargin))))))
-                ip.addRequired('c', @isnumeric);
-                ip.addRequired('t', @isnumeric);
-                ip.addOptional('z',[], @isnumeric);
-                ip.addParamValue('ZSize',[], @isnumeric);
-                ip.parse(c, t, varargin{:});
-                ZSize=ip.Results.ZSize;
-            else
-                ZSize=obj.getSizeZ();
-                ip.addRequired('c', ...
-                    @(x) insequence_and_scalar(x, 1, obj.getSizeC() ) );
-                ip.addRequired('t', ...
-                    @(x) insequence_and_scalar(x, 1, obj.getSizeT() ) );
-                ip.addOptional('z', [] , ...
-                    @(x) all_insequence(x,1,      ZSize )  );
-                ip.parse(c, t, varargin{:});
-            end
+            ip.addRequired('c', ...
+                @(x) insequence_and_scalar(x, 1, obj.getSizeC() ) );
+            ip.addRequired('t', ...
+                @(x) insequence_and_scalar(x, 1, obj.getSizeT() ) );
+            ip.addOptional('z', [] , ...
+                @(x) all_insequence(x,1,        obj.getSizeZ() )  );
+            ip.parse(c, t, varargin{:});
 
             z = ip.Results.z;
             
             if(isempty(z))
-                z = 1 : ZSize;
+                z = 1 : obj.getSizeZ();
             end
             
             I = obj.loadStack_(c,t,z);

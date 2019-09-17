@@ -529,18 +529,7 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
         function setFig = edit(obj)
             setFig = movieDataGUI(obj);
         end
-
-        function unlockFile(obj)
-            % BioHPC nfs keeps locking file, this dirty workaround unlock them
-            % Contract only works on linux 
-            chPath=cell(1,numel(obj.channels_));
-            for cIdx=1:numel(chPath)
-                    chPath{cIdx} =[obj.channels_(cIdx).channelPath_ filesep '*'];
-            end
-            fileCell=cellfun(@(s) [s ' '],chPath,'unif',0);
-            system(['quickMIPMovie ' fileCell{:}]);
-        end
-
+        
         function saveMock(obj)
             mockMDname = obj.channels_(1,1).getGenericName(obj.channels_(1,1).hcsPlatestack_{1}, 'site_on');
             if max(size(obj.channels_(1,1).hcsPlatestack_)) ~= 1
@@ -684,7 +673,6 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
             else
                 if ~isempty(obj.pixelSizeZ_) && obj.pixelSizeZ_ > 0
                     r = TiffSeriesReader({obj.channels_.channelPath_},'force3D', true);
-                    % r = TiffSeriesReader3D({obj.channels_.channelPath_});
                 else
                     r = TiffSeriesReader({obj.channels_.channelPath_});
                 end
@@ -813,7 +801,6 @@ classdef  MovieData < MovieObject & matlab.mixin.Heterogeneous
             [obj, absolutePath] = MovieObject.loadMatFile('MovieData', filepath);
             if(~isempty(obj.zSize_)&&(obj.zSize_>1)&&(obj.nFrames_==1)&&(isa(obj.getReader(),'TiffSeriesReader')||isempty(obj.getReader)))
                 obj.setReader(TiffSeriesReader({obj.channels_.channelPath_},'force3D',true))
-                % obj.setReader(TiffSeriesReader3D({obj.channels_.channelPath_}))
             end
         end
         

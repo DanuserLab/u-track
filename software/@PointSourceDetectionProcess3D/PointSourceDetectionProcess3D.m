@@ -1,4 +1,4 @@
-classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
+classdef PointSourceDetectionProcess3D < DetectionProcess
 %PointSourceDetectionProcess3D is a concrete class of a point source
 %detection process for 3d
 %
@@ -22,25 +22,18 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
 % 
     
     methods (Access = public)
-        function obj = PointSourceDetectionProcess3D(owner, outputDir, funParams, varargin)
-            % Constructor of the PointSourceDetectionProcess3D
-            if nargin == 4 % added for its subclass PointSourceDetectionProcess3DDynROI
-                super_args{1} = owner;
-                super_args{2} = varargin{1};
-                super_args{3} = @detectMoviePointSources3D; % subclass use the same wrapper function
-                super_args{4} = funParams;
-            else
-                super_args{1} = owner;
-                super_args{2} = PointSourceDetectionProcess3D.getName;
-                super_args{3} = @detectMoviePointSources3D;
-                
-                if nargin < 3 || isempty(funParams)  % Default funParams
-                    if nargin <2, outputDir = owner.outputDirectory_; end
-                    funParams = PointSourceDetectionProcess3D.getDefaultParams(owner,outputDir);
-                end
-                
-                super_args{4} = funParams;
+        function obj = PointSourceDetectionProcess3D(owner, outputDir, funParams)
+            % Constructor of the SubResolutionProcess
+            super_args{1} = owner;
+            super_args{2} = PointSourceDetectionProcess3D.getName;
+            super_args{3} = @detectMoviePointSources3D;
+            
+            if nargin < 3 || isempty(funParams)  % Default funParams
+                if nargin <2, outputDir = owner.outputDirectory_; end
+                funParams = PointSourceDetectionProcess3D.getDefaultParams(owner,outputDir);
             end
+            
+            super_args{4} = funParams;
             
             obj = obj@DetectionProcess(super_args{:});
             obj.is3Dcompatible_ = true;
@@ -50,7 +43,7 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
         function varargout = loadChannelOutput(obj,iChan,varargin)
             
             % Input check
-            outputList = {'movieInfo', 'detect3D','detect3Dall', 'movieInfoDynROIRef','debugPos','labelSegPos','labels'};
+            outputList = {'movieInfo', 'detect3D','detect3Dall', 'detectionsLabRef'};
             ip = inputParser;
             ip.addRequired('iChan',@(x) ismember(x,1:numel(obj.owner_.channels_)));
             ip.addOptional('iFrame',1:obj.owner_.nFrames_,...
@@ -72,25 +65,13 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
             for iout = 1:numel(output)
                 switch output{iout}             
                     case 'detect3D'
-                        if isa(obj, 'PointSourceDetectionProcess3DDynROI')
-                            % DynROI detection results on movieViewer GUI are save in movieInfoDynROIRef,
-                            % instead of in movieInfo for regular PointSourceDetectionProcess3D.
-                            s = cached.load(obj.outFilePaths_{2, iChan}, '-useCache', ip.Results.useCache, 'movieInfoDynROIRef');
-                            if numel(ip.Results.iFrame)>1
-                                v1 = s.movieInfoDynROIRef;
-                            else
-                                v1 = s.movieInfoDynROIRef(iFrame);
-                            end                            
+                        s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
+
+                        if numel(ip.Results.iFrame)>1
+                            v1 = s.movieInfo;
                         else
-                            s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
-                            
-                            if numel(ip.Results.iFrame)>1
-                                v1 = s.movieInfo;
-                            else
-                                v1 = s.movieInfo(iFrame);
-                            end
+                            v1 = s.movieInfo(iFrame);
                         end
-                    
                         if ~isempty(v1.xCoord) && ~isempty(iZ)
                             % Only show Detections in Z. 
                             zThick = 1;
@@ -108,25 +89,12 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
                         varargout{iout} = dataOutz;
 
                     case 'detect3Dall'
-                        if isa(obj, 'PointSourceDetectionProcess3DDynROI')
-                            % DynROI detection results on movieViewer GUI are save in movieInfoDynROIRef,
-                            % instead of in movieInfo for regular PointSourceDetectionProcess3D.
-                            s = cached.load(obj.outFilePaths_{2, iChan}, '-useCache', ip.Results.useCache, 'movieInfoDynROIRef');
-                            
-                            if numel(ip.Results.iFrame)>1
-                                v1 = s.movieInfoDynROIRef;
-                            else
-                                v1 = s.movieInfoDynROIRef(iFrame);
-                            end
-                            ZXRatio = 1; % MIP does not use this zCoord info
-                        else                            
-                            s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
-                            
-                            if numel(ip.Results.iFrame)>1
-                                v1 = s.movieInfo;
-                            else
-                                v1 = s.movieInfo(iFrame);
-                            end
+                        s = cached.load(obj.outFilePaths_{1, iChan}, '-useCache', ip.Results.useCache, 'movieInfo');
+
+                        if numel(ip.Results.iFrame)>1
+                            v1 = s.movieInfo;
+                        else
+                            v1 = s.movieInfo(iFrame);
                         end
                         if ~isempty(v1.xCoord) && ~isempty(iZ)
                             % Only show Detections in Z. 
@@ -143,9 +111,10 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
                         end
                         dataOutz = obj.convertProjection3D(dataOut, projAxis3D, ZXRatio);
                         varargout{iout} = dataOutz;            
-                    case {'movieInfo','debugPos','labelSegPos','labels', 'movieInfoDynROIRef'} % those are not output from getDrawableOutput, won't be called in movieViewer GUI.
+                    case 'movieInfo'
                         varargout{iout} = obj.loadChannelOutput@DetectionProcess(iChan, varargin{:});
-                
+                    case 'detectionsLabRef'
+                        varargout{iout} = load(obj.outFilePaths_{2, iChan}, 'detectionLabRef');
                     otherwise
                         error('Incorrect Output Var type');
                 end
@@ -222,15 +191,6 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
             funParams.RefineMaskLoG = false;
             funParams.RefineMaskValid = false;
             funParams.ClearMaskBorder = true;
-            funParams.processBuildDynROI=[];
-            funParams.saveMaskFilePattern=[];
-            funParams.samplePos=[];
-
-
-            %% multiscale detector
-            funParams.debug=false;
-            funParams.scales=[2:0.5:4];
-            funParams.version='';
             
             % DetectComets3D & watershed params
             funParams.waterThresh = 120;
@@ -274,7 +234,6 @@ classdef PointSourceDetectionProcess3D < DetectionProcess & NonSingularProcess
                           'pointSourceAutoSigma',...
                           'pointSourceAutoSigmaFit',...
                           'pSAutoSigmaMarkedWatershed',...
-                          'pSWatershed',...
                           'pointSourceAutoSigmaMixture',... 
                           'pointSourceAutoSigmaLM',...     
                           'pointSourceAutoSigmaFitSig',... 

@@ -5,7 +5,6 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
     % Sebastien Besson (last modified Dec 2011)
     % Mark Kittisopikul, Nov 2014, Added channelOutput cache
     % Andrew R. Jamieson, Dec 2016, updated parameters for getDefaultGapClosingCostMatrices and GUI
-    % Philippe Roudot added displayAll function, which is for results display in algorithm script, not used by the packages. 2018
 %
 % Copyright (C) 2019, Danuser Lab - UTSouthwestern 
 %
@@ -25,7 +24,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-
+    
     properties
         useCache_ = false;
     end
@@ -35,11 +34,6 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
         function obj = TrackingProcess(owner, varargin)
             if nargin == 0
                 super_args = {};
-            elseif nargin == 4 % added for its subclass TrackingDynROIProcess    
-                super_args{1} = owner;    
-                super_args{2} = varargin{1};    
-                super_args{3} = varargin{2};    
-                super_args{4} = varargin{3};
             else
                 % Input check
                 ip = inputParser;
@@ -66,112 +60,12 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
         function h=draw(obj,iChan,varargin)
             h = obj.draw@DataProcessingProcess(iChan,varargin{:},'useCache',true);
         end
-
-        function overlayCell=displayAll(obj,iChan,displayProjsProcess,varargin)
-            ip =inputParser;
-            ip.CaseSensitive = false;
-            ip.KeepUnmatched = true;
-            ip.addOptional('iChan',@(x) isscalar(x) && obj.checkChanNum);
-            ip.addOptional('displayProjsProcess',obj.getOwner().searchProcessName('RenderDynROI'),@(x) isa(x,'RenderDynROI')||isa(x,'cell'));
-            ip.addParameter('output','movieInfo',@ischar);
-            ip.addParameter('show',true,@islogical);
-            ip.addParameter('useDetection',false,@islogical);
-            ip.addParameter('tracks',[],@(x) isa(x,'Tracks')); % side load tracks for convenience...
-            ip.addParameter('trackLabel','depth',@(x) isnumeric(x)||any(strcmpi(x, {'ID', 'lifetime','depth'})));
-            ip.addParameter('showTrackability',0);
-            ip.parse(iChan,displayProjsProcess,varargin{:})
-            p=ip.Results;
-
-
-            fParam=obj.funParams_;
-
-            displayProjs=cell(1,numel(displayProjsProcess));
-            for pIdx=1:numel(displayProjsProcess)
-                if(isa(displayProjsProcess(pIdx),'RenderDynROI'))
-                    data=displayProjsProcess(pIdx).loadFileOrCache();
-                    displayProjs{pIdx}=[data{2}.processRenderCell{:}];
-                else
-                    displayProjs{pIdx}=displayProjsProcess{pIdx};
-                end
-            end
-            displayProjs=num2cell([displayProjs{:}]);
-            overlayCell=cell(1,numel(displayProjs));
-            for rIdx=1:numel(overlayCell)
-                overlay=ProjectDynROIRendering(displayProjs{rIdx},['ROI-' obj.getProcessTag()]);
-                overlay.ZRight=displayProjs{rIdx}.ZRight;
-                overlay.Zup=displayProjs{rIdx}.Zup;
-                overlayCell{rIdx}=overlay;
-            end
-
-            if(isempty(p.tracks))
-                tracks=TracksHandle(obj.loadChannelOutput(iChan));
-            else
-                tracks=p.tracks;
-            end
-
-            if(~isnumeric(p.trackLabel))
-            switch p.trackLabel
-                case 'lifetime'
-                    trackLabel=arrayfun(@(t) t.lifetime,tracks);
-                case 'ID'
-                    trackLabel=1:numel(tracks);
-                case 'depth'
-                    trackLabel=arrayfun(@(t) nanmean(t.z),tracks);
-                otherwise
-                    error('Undefined label');
-            end
-            else
-                trackLabel=p.trackLabel;
-            end
-
-            if(p.useDetection||p.showTrackability==1)
-                if(p.showTrackability==1)
-                    trackDet=Detections().setFromTracksIndx(tracks);
-                    tmp=load(obj.outFilePaths_{3,iChan}); 
-                    trackabilityData=tmp.trackabilityData;
-                    detTrackability=trackabilityData.trackabilityCost;
-                    radii=cellfun(@(t) 1+3*(1-t),detTrackability,'unif',0);
-                    trackDetLabel=detTrackability;
-                else
-                    [trackDet,lifetimeLabels,trackIndices]=Detections().getTracksCoord(tracks);
-                    trackDetLabel=cellfun(@(i) trackLabel(i),trackIndices,'unif',0);
-                    radii=2;
-                end
-            end
-
-            if(p.showTrackability==2)
-                tmp=load(obj.outFilePaths_{3,iChan}); 
-                trackabilityData=tmp.trackabilityData;
-                trackDet=trackabilityData.samplesDetections;
-                trackDetLabel=trackabilityData.votingLabel;
-                radii=0.5;  
-            end
-
-            for rIdx=1:numel(overlayCell)
-                myColormap=256*parula(256);
-                if(p.useDetection||p.showTrackability>0)
-                    overlayProjDetectionMovie(displayProjs{rIdx},'detections',trackDet, 'process',overlayCell{rIdx}, ... 
-                        'renderingMethod','FilledCircle','colorLabel',trackDetLabel,'cumulative',false,'colormap',myColormap,'radius',radii,'detectionBorderDisplay',1.5,varargin{:}); 
-                else
-                    overlayProjTracksMovie(displayProjs{rIdx},'tracks',tracks,'dragonTail',10, ... 
-                        'colormap',myColormap,'colorLabel',trackLabel, ... 
-                        'process',overlayCell{rIdx},varargin{:}); 
-                end
-            end
-
-            if(p.show)
-            for rIdx=1:numel(displayProjs)
-                overlayCell{rIdx}.cachedOrtho.imdisp();
-                drawnow;
-            end
-            end
-        end
         
         function varargout = loadChannelOutput(obj, iChan, varargin)
             
             % Input check
             outputList = {'tracksFinal', 'gapInfo', 'staticTracks',...
-                          'plottracks3d','tracksDynROIRef'};
+                          'plottracks3d'};
             ip =inputParser;
             ip.addRequired('obj');
             ip.addRequired('iChan', @(x) obj.checkChanNum(x));
@@ -203,9 +97,6 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
                         varargout{i} = s.tracksFinal;
                     case 'gapInfo'
                         varargout{i} = findTrackGaps(s.tracksFinal);
-                    case 'tracksDynROIRef'
-                        tmp=load(obj.outFilePaths_{4,iChan});
-                        varargout{i}=tmp.tracksDynROIRef;
                 end
                 if strcmp(output{i}, 'tracksFinal') && ~isempty(iFrame)
                     % Filter tracks existing in input frame
@@ -416,8 +307,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
             % Set default parameters
             nChan = numel(owner.channels_);
             funParams.ChannelIndex = 1:numel(owner.channels_);
-%             funParams.EstimateTrackability=false;
-%             funParams.processBuildDynROI=[]; % DynROI used for computation
+            
             
             % should detect for which channels a detection process output exists.
             funParams.DetProcessIndex = []; % perhaps tag by process & channel
@@ -437,18 +327,12 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
             kalmanFunctions = rmfield(kalmanFunctions,fields(~ismember(fields,validFields)));
             funParams.kalmanFunctions = kalmanFunctions;            
             % --------------- saveResults ----------------
-            funParams.saveResults.export = 0; %FLAG allow additional export tracking results into matrix
-%             funParams.saveResults.exportTrackabilityData = 1; %FLAG allow exporting Kalman filter variable
-
-
+            funParams.saveResults.export = 0; %FLAG allow additional export of the tracking results into matrix
             % --------------- Others ----------------            
             funParams.verbose = 1;
             
             if owner.is3D
                 funParams.probDim = 3;
-                funParams.EstimateTrackability=false;
-                funParams.processBuildDynROI=[]; % DynROI used for computation
-                funParams.saveResults.exportTrackabilityData = 1; %FLAG allow exporting Kalman filter variable
             else
                 funParams.probDim = 2;
             end
