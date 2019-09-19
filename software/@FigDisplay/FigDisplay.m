@@ -37,7 +37,7 @@ classdef FigDisplay < MovieDataDisplay
             ip.addParameter('Parent', [], @ishandle);
             ip.parse(varargin{:})
             parent_h = ip.Results.Parent;
-            if isempty(obj.plotFunParams)
+            if all(cellfun(@isempty,obj.plotFunParams))
                 h = obj.plotFunc(data);    
             elseif ~isempty(data) && ~isstruct(data) && ~isa(data.obj,'MovieData') && ~isa(data.obj,'Process')
                 h = obj.plotFunc(data, obj.plotFunParams{:});

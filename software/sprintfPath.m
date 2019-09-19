@@ -1,4 +1,4 @@
-function path=sprintfPath(XYProjTemplate,fIdx)
+function path=sprintfPath(XYProjTemplate,varargin)
 % making sprintf windows-path-proof
 % sprintf applied on the filename only
 %
@@ -21,5 +21,5 @@ function path=sprintfPath(XYProjTemplate,fIdx)
 % 
 % 
 [folder,file,ext]=fileparts(XYProjTemplate);
-filename=sprintf(file,fIdx);
+filename=sprintf(file,varargin{:});
 path=fullfile(folder,[filename ext]);

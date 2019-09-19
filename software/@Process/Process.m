@@ -81,6 +81,7 @@ classdef Process < hgsetget
                 % set default tag label
                 numproc = numel(owner.getProcessIndex(class(obj), Inf, 0));
                 obj.tag_ = [class(obj) '_' num2str(numproc+1)];
+                obj.outFilePathsCache_=[];
             end
         end
     end
@@ -276,27 +277,27 @@ classdef Process < hgsetget
         end
        
        function outputCell=loadFileOrCache(obj)
-           if(isempty((obj.outFilePathsCache_)))
+           % if(isempty(obj.outFilePathsCache_))
                 outputCell=cell(1,numel(obj.outFilePaths_));
                 for i=1:numel(obj.outFilePaths_)
                     if(~isempty(obj.outFilePaths_{i}))
                         outputCell{i}=load(obj.outFilePaths_{i});
                     end
                 end
-            else
-                outputCell=obj.outFilePathsCache_;
-            end
+            % else
+            %     outputCell=obj.outFilePathsCache_;
+            % end
        end
 
-       function cacheProcess=createCacheProcess(obj)
-            cacheProcess=ExternalProcess(obj.getOwner(),['cached_' obj.name_]);
-            cacheProcess.setOutFilePaths({[obj.getOwner().outputDirectory_ filesep 'dynROIs' filesep 'initDynROIs.mat']});
-            cacheProcess.setProcessTag(['cached_' obj.tag_]);
-            eoutput=cellfun(@isempty,obj.outFilePaths_);
-            tmp=cell(size(obj.outFilePaths_));
-            tmp(~eoutput)=cellfun(@(f) load(f),obj.outFilePaths_(~eoutput),'unif',0);
-            cacheProcess.outFilePathsCache_=tmp;
-       end
+       % function cacheProcess=createCacheProcess(obj)
+       %      cacheProcess=ExternalProcess(obj.getOwner(),['cached_' obj.name_]);
+       %      cacheProcess.setOutFilePaths({[obj.getOwner().outputDirectory_ filesep 'dynROIs' filesep 'initDynROIs.mat']});
+       %      cacheProcess.setProcessTag(['cached_' obj.tag_]);
+       %      eoutput=cellfun(@isempty,obj.outFilePaths_);
+       %      tmp=cell(size(obj.outFilePaths_));
+       %      tmp(~eoutput)=cellfun(@(f) load(f),obj.outFilePaths_(~eoutput),'unif',0);
+       %      cacheProcess.outFilePathsCache_=tmp;
+       % end
 
 
        function emptyCache(obj)

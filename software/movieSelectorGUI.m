@@ -209,6 +209,7 @@ packageList = {
     'MaskQuantPackage'
     'Morphology3DPackage'
     'XcorrFluctuationPackage'
+    'NewUTrack3DPackage'
     };
 validPackage = cellfun(@(x) exist(x,'class')==8,packageList);
 packageList = packageList(validPackage);

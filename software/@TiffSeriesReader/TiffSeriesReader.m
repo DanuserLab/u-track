@@ -50,6 +50,7 @@ classdef  TiffSeriesReader < Reader
         end
         
         function getDimensions(obj)
+
             sizeX = zeros(obj.getSizeC(), 1);
             sizeY = zeros(obj.getSizeC(), 1);
             sizeT = zeros(obj.getSizeC(), 1);
@@ -60,6 +61,7 @@ classdef  TiffSeriesReader < Reader
                 imInfo = cellfun(@(x) imfinfo([obj.paths{iChan} filesep x]), fileNames, 'unif', 0);
                 sizeX(iChan) = unique(cellfun(@(x)(x.Width), imInfo));
                 sizeY(iChan) = unique(cellfun(@(x)(x.Height), imInfo));
+                
                 
                 if length(fileNames)>1
                     sizeZ(iChan) = unique(cellfun(@numel, imInfo));
@@ -72,7 +74,7 @@ classdef  TiffSeriesReader < Reader
                     else
                         info = imfinfo(fullfile(obj.paths{iChan}, fileNames{1}));
                         sizeT(iChan) = numel(info);   
-                        sizeZ(iChan) = 1;  
+                        sizeZ(iChan) = 1 ; 
                     end
                 end
                 bitDepth(iChan) = unique(cellfun(@(x)(x.BitDepth), imInfo));
@@ -104,7 +106,8 @@ classdef  TiffSeriesReader < Reader
         end
         
         function sizeZ = getSizeZ(obj)
-            if isempty(obj.sizeZ), obj.getDimensions(iChan); end
+            %  if (isempty(obj.sizeZ)||obj.force3D), obj.getDimensions(); end
+            if (isempty(obj.sizeZ)), obj.getDimensions(); end
             sizeZ = obj.sizeZ;
         end
         
@@ -215,7 +218,7 @@ classdef  TiffSeriesReader < Reader
         end
         
         function I = loadStack_(obj, iChan, iFrame, iZ)         
-            if obj.getSizeZ() > 1
+            if (obj.getSizeZ() > 1)
                 I = readtiff(fullfile(obj.paths{iChan}, obj.filenames{iChan}{iFrame}), iZ);
             else
                 I = obj.loadImage_(iChan, iFrame, 1);
