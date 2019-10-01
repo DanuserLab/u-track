@@ -1,4 +1,4 @@
-function [tracksFinal,kalmanInfoLink,errFlag,trackabilityData] = trackCloseGapsKalmanSparse(...
+function [tracksFinal,kalmanInfoLink,errFlag] = trackCloseGapsKalmanSparse(...
     movieInfo,costMatrices,gapCloseParam,kalmanFunctions,probDim,...
     saveResults,verbose,varargin)
 %TRACKCLOSEGAPSKALMANSPARSE (1) links features between frames, possibly using the Kalman Filter for motion propagation and (2) closes gaps, with merging and splitting
@@ -211,12 +211,6 @@ if errFlag
     return
 end
 
-
-%% Additional options using inputParser for simplicity
-p = inputParser;
-addOptional(p,'estimateTrackability',false);        
-parse(p,varargin{:});
-
 %% preamble
 
 %get gap closing parameters from input
@@ -381,9 +375,9 @@ if selfAdaptive
         disp('Linking features forwards ...');
     end
     [tracksFeatIndxLink,tracksCoordAmpLink,kalmanInfoLink,nnDistLinkedFeat,...
-        dummy,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
+        dummy,errFlag] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
         costMatrices(1).parameters,kalmanFunctions,probDim,...
-        kalmanInfoLink,linkingCosts,verbose,'estimateTrackability',p.Results.estimateTrackability);
+        kalmanInfoLink,linkingCosts,verbose);
     clear dummy
     
 else %if not self-adaptive, link in one round only
@@ -393,8 +387,8 @@ else %if not self-adaptive, link in one round only
         disp('Linking features ...');
     end
     [tracksFeatIndxLink,tracksCoordAmpLink,dummy,nnDistLinkedFeat,...
-        dummy,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
-        costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose,'estimateTrackability',false);
+        dummy,errFlag] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
+        costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose);
     kalmanInfoLink = [];
     clear dummy
 

@@ -131,8 +131,8 @@ graphProc=validProc(isGraphProc);
 graphProcId = validProcId(isGraphProc);
 
 % Create series of anonymous function to generate process controls
-createProcText= @(panel,i,j,pos,hgt,name) uicontrol(panel,'Style','text',...
-    'Position',[10 pos 250 hgt],'Tag',['text_process' num2str(i)],...
+createProcText= @(panel,i,j,pos,name) uicontrol(panel,'Style','text',...
+    'Position',[10 pos 250 20],'Tag',['text_process' num2str(i)],...
     'String',name,'HorizontalAlignment','left','FontWeight','bold');
 createProcTextTag= @(panel,i,j,pos,name) uicontrol(panel,'Style','text',...
     'Position',[10 pos 250 10],'Tag',['text_processTag' num2str(i)],...
@@ -173,18 +173,14 @@ if isa(userData.MO,'MovieData')
             end
             hPosition=hPosition+20;
         end
-        if size(imageProc{iProc}.name_,2)>32 % make sure long process name fit on GUI
-            hgt = 40;
-        else
-            hgt = 20;
-        end  
-        createProcText(imagePanel,imageProcId(iProc),iOutput,hPosition,hgt,imageProc{iProc}.name_);
-        hPosition=hPosition+hgt;
+        createProcText(imagePanel,imageProcId(iProc),iOutput,hPosition,imageProc{iProc}.name_);
         
         % Show process tags for disambiguation
         if ip.Results.showProcTag
-            createProcTextTag(imagePanel,imageProcId(iProc),iOutput,hPosition,imageProc{iProc}.tag_);
-            hPosition=hPosition+15;
+            createProcTextTag(imagePanel,imageProcId(iProc),iOutput,hPosition+20,imageProc{iProc}.tag_);
+            hPosition=hPosition+35;
+        else
+            hPosition=hPosition+20;
         end
 
     end
@@ -240,13 +236,8 @@ if ~isempty(overlayProc)
                 'Callback',@(h,event) redrawOverlay(h,guidata(h))),find(validChan));
             hPosition=hPosition+20;
         end
-        if size(overlayProc{iProc}.name_,2)>32  % make sure long process name fit on GUI
-            hgt = 40;
-        else
-            hgt = 20;
-        end
-        createProcText(overlayPanel,overlayProcId(iProc),iOutput,hPosition,hgt,overlayProc{iProc}.name_);
-        hPosition=hPosition+hgt;
+        createProcText(overlayPanel,overlayProcId(iProc),iOutput,hPosition,overlayProc{iProc}.name_);
+        hPosition=hPosition+20;
     end
     
     if ~isempty(overlayProc)
@@ -348,7 +339,7 @@ if isa(userData.MO,'MovieData')
             'Callback',@(h,event) redrawScene(h,guidata(h)));
         uicontrol(moviePanel,'Style','text','Position',[100 hPosition 40 15],...
             'HorizontalAlignment','left',...
-            'String',['/' num2str(userData.MO.zSize_)],'Tag','text_depthMax');
+            'String',['/' num2str(userData.MO.zSize_)],'Tag','text_frameMax');
         
         uicontrol(moviePanel,'Style','slider',...
             'Position',[150 hPosition panelsLength-160 20],...
@@ -697,13 +688,7 @@ set(hObject,'String', 'Run movie', 'Value', 0);
 
 function render3DMovie(hObject,handles)
 userData = get(handles.figure1, 'UserData');
-
-% Update userData if BuildDynROIProcess was selected on Image panel.
-imageTag = get(get(handles.uipanel_image,'SelectedObject'),'Tag');
-userData = isBuildDynROIProcessSelected(imageTag, userData);
-
 nPlane = userData.MO.zSize_;
-
 startFrame = get(handles.slider_depth,'Value');
 if startFrame == nPlane, startFrame =1; end;
 if get(hObject,'Value')
@@ -741,30 +726,19 @@ if saveFrames;
     fprintf('Generating movie depth:     ');
 end
 
-imageTagBegin = get(get(handles.uipanel_image,'SelectedObject'),'Tag');
-
 for iFrame = startFrame : nPlane
-    imageTagNow = get(get(handles.uipanel_image,'SelectedObject'),'Tag');
-    if ~isequal(imageTagBegin, imageTagNow)
-        % If selected object is changed on the Image panel while the 3D rendering is running,
-        % stop the 3D rendering!
-        set(hObject,'String', 'Show 3D', 'Value', 0);
-        return;
-    else
-        
-        if ~get(hObject,'Value'), return; end % Handle pushbutton press
-        set(handles.slider_depth, 'Value',iFrame);
-        redrawScene(hObject, handles);
-        drawnow;
-        
-        % Get current frame for frame/movie export
-        hFig = getFigure(handles,'Movie');
-        if saveMovie && strcmpi(movieFormat,'mov'), MakeQTMovie('addfigure'); end
-        if saveMovie && strcmpi(movieFormat,'avi'), movieFrames(iFrame) = getframe(hFig); end
-        if saveFrames
-            print(hFig, '-dtiff', fullfile(fpath,frameName(iFrame)));
-            fprintf('\b\b\b\b%3d%%', round(100*iFrame/(nPlane)));
-        end
+    if ~get(hObject,'Value'), return; end % Handle pushbutton press
+    set(handles.slider_depth, 'Value',iFrame);
+    redrawScene(hObject, handles);    
+    drawnow;
+    
+    % Get current frame for frame/movie export
+    hFig = getFigure(handles,'Movie');
+    if saveMovie && strcmpi(movieFormat,'mov'), MakeQTMovie('addfigure'); end
+    if saveMovie && strcmpi(movieFormat,'avi'), movieFrames(iFrame) = getframe(hFig); end
+    if saveFrames
+        print(hFig, '-dtiff', fullfile(fpath,frameName(iFrame)));
+        fprintf('\b\b\b\b%3d%%', round(100*iFrame/(nPlane)));
     end
 end
 
@@ -943,15 +917,6 @@ if strcmp(imageTag,'radiobutton_channels')
     userData.MO.channels_(chanList).draw(frameNr,ZNr,varargin{:});
     displayMethod = userData.MO.channels_(chanList(1)).displayMethod_;
     projectionAxis3D = 'Z'; % Just default
-    procId = 0;
-    if userData.MO.is3D()
-        if get(handles.slider_depth, 'Max') ~= userData.MO.zSize_
-            set(handles.text_depthMax, 'String',['/' num2str(userData.MO.zSize_)]);
-            set(handles.slider_depth, 'Max',userData.MO.zSize_,...
-                'SliderStep',[1/double(userData.MO.zSize_)  5/double(userData.MO.zSize_)]);
-            set(handles.edit_depth,'String',ZNr);
-        end
-    end
 else
     set(channelBoxes,'Enable','off');
     % Retrieve the id, process nr and channel nr of the selected imageProc
@@ -962,23 +927,6 @@ else
     output = outputList(iOutput).var;
     iChan = str2double(tokens{1}{3});
     if userData.MO.is3D
-        if isa(userData.MO.processes_{procId}, 'BuildDynROIProcess')
-            s = cached.load(userData.MO.processes_{procId}.outFilePaths_{3, iChan}, '-useCache', true);
-            load(s.movieDataDynROICell{1});
-            newMD = MD; % MD built based on DynROI raw images.
-            clear MD;
-            if get(handles.slider_depth, 'Max') ~= newMD.zSize_ || get(handles.slider_depth, 'Value') > newMD.zSize_
-                if ZNr > newMD.zSize_
-                    ZNr = newMD.zSize_;
-                    set(handles.edit_depth,'String',ZNr);
-                    set(handles.slider_depth,'Value',ZNr);
-                end
-                set(handles.text_depthMax, 'String',['/' num2str(newMD.zSize_)]);
-                set(handles.slider_depth, 'Max',newMD.zSize_,...
-                    'SliderStep',[1/double(newMD.zSize_)  5/double(newMD.zSize_)]);
-            end
-        end
-        
         userData.MO.processes_{procId}.draw(iChan,frameNr, ZNr, 'output',output, varargin{:});
         % Check for projected Axis in output name
         if strfind(output, 'three')
@@ -996,66 +944,6 @@ else
     end
     displayMethod = userData.MO.processes_{procId}.displayMethod_{iOutput,iChan};
 end
-
-% Disable unrelated overlay processes based on the seletection on Image
-% panel for 'NewUTrack3DPackage'.
-% Made sure it still work even when packages_ was not added, or when only
-% part of the processes were run.
-if isfield(handles, 'uipanel_overlay')
-    overlayProcTexts = findobj(handles.uipanel_overlay,'-regexp','Tag','^text_process\d$');
-    if ~isempty(overlayProcTexts)
-        overlayProcTextsTags = arrayfun(@(x) get(x,'Tag'),overlayProcTexts, 'UniformOutput',false);
-        matches = regexp(overlayProcTextsTags,'\d*','Match');
-        overlayProcIds = str2double([matches{:}]);
-        overlayProcNames =  cell(1,max(overlayProcIds));
-        for i = overlayProcIds
-            overlayProcNames{i} = class(userData.MO.processes_{i});
-        end
-        
-        if procId > 0
-            switch class(userData.MO.processes_{procId})
-                case {'RenderFullMIPProcess', 'BuildDynROIProcess', 'RenderDynROIMIPProcess'}
-                    unrelatedProcNames = userData.MO.processes_{procId}.unrelatedProc();
-                    tokens = regexp(overlayProcNames, strjoin(unrelatedProcNames,'|'),'tokens');
-                    index = ~cellfun(@isempty,tokens);
-                otherwise
-                    index = false(size(overlayProcNames));
-            end
-        else
-            % PointSourceDetectionProcess3DDynROI and TrackingDynROIProcess are
-            % unrelated processes for raw image
-            tokens = regexp(overlayProcNames, strjoin({'^PointSourceDetectionProcess3DDynROI$', '^TrackingDynROIProcess$'},'|'),'tokens');
-            index = ~cellfun(@isempty,tokens);
-        end
-        
-        overlayTextsAndBoxes = findobj(handles.uipanel_overlay,'-regexp','Tag','\w*_process*');
-        set(overlayTextsAndBoxes,'Enable','on');
-        if sum(index) > 0
-            overlayTagsAll = arrayfun(@(x) get(x,'Tag'),overlayTextsAndBoxes, 'UniformOutput',false);
-            newIndex = false(size(overlayTagsAll,1),1);
-            newIndexCheckbox = false(size(overlayTagsAll,1),1);
-            for j = find(index)
-                tokens = regexp(overlayTagsAll,['\w*_process' num2str(j)],'tokens');
-                newIndex = ~cellfun(@isempty,tokens)+newIndex;
-                tokensCheckbox = regexp(overlayTagsAll,['checkbox_process' num2str(j)],'tokens');
-                newIndexCheckbox = ~cellfun(@isempty,tokensCheckbox)+newIndexCheckbox;
-            end
-            set(overlayTextsAndBoxes(find(newIndex)),'Enable','off');
-            % Make sure the unrelated processes' checkboxes get unchecked,
-            % and delete what have been drawn on the overlay by those
-            % unrelated processes' checkboxes.
-            overlayUnrelatedCheckboxes = overlayTextsAndBoxes(find(newIndexCheckbox));
-            unrelatedCheckboxObj = findobj(overlayUnrelatedCheckboxes,'Value', 1);
-            if ~isempty(unrelatedCheckboxObj)
-                set(unrelatedCheckboxObj,'Value', 0);
-                for i = 1:numel(unrelatedCheckboxObj)
-                    redrawOverlay(unrelatedCheckboxObj(i),handles);
-                end
-            end
-        end
-    end
-end
-
 
 optFig = findobj(0,'-regexp','Name','Movie options');
 if ~isempty(optFig), 
@@ -1548,16 +1436,4 @@ if MO.hasMock()
     end
 end
 
-function out = isBuildDynROIProcessSelected(imageTag, userData)
-    if ~isempty(imageTag) && ~strcmp(imageTag,'radiobutton_channels')
-        tokens = regexp(imageTag,'process(\d+)','tokens');
-        procId=str2double(tokens{1}{1});
-        if isa(userData.MO.processes_{procId}, 'BuildDynROIProcess')
-            iChan = userData.MO.processes_{procId}.funParams_.ChannelIndex(1);
-            s = cached.load(userData.MO.processes_{procId}.outFilePaths_{3, iChan}, '-useCache', true);
-            load(s.movieDataDynROICell{1});
-            userData.MO = MD; % MD built based on DynROI raw images.
-            clear MD;
-        end
-    end
-    out = userData;
+        
