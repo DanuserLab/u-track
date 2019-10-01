@@ -152,11 +152,11 @@ end
 pointSourceDetProc3D.setInFilePaths(inFilePaths);
     
 % Set up the output directories
-outFilePaths = cell(2, numel(movieData.channels_));
+outFilePaths = cell(1, numel(movieData.channels_));
 for i = p.ChannelIndex;    
     %Create string for current directory
     outFilePaths{1,i} = [p.OutputDirectory filesep 'channel_' num2str(i) '.mat'];
-    if ~isempty(p.processBuildDynROI)
+    if ~isempty(p.processBuildDynROI) && isa(pointSourceDetProc3D, 'PointSourceDetectionProcess3DDynROI')
         outFilePaths{2,i} = [p.OutputDirectory filesep 'channel_DynROIRef' num2str(i) '.mat'];
     end
 end
