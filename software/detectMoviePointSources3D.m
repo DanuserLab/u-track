@@ -156,7 +156,7 @@ outFilePaths = cell(1, numel(movieData.channels_));
 for i = p.ChannelIndex;    
     %Create string for current directory
     outFilePaths{1,i} = [p.OutputDirectory filesep 'channel_' num2str(i) '.mat'];
-    if ~isempty(p.processBuildDynROI) && isa(pointSourceDetProc3D, 'PointSourceDetectionProcess3DDynROI')
+    if ~isempty(p.processBuildDynROI)
         outFilePaths{2,i} = [p.OutputDirectory filesep 'channel_DynROIRef' num2str(i) '.mat'];
     end
 end
