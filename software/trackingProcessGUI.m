@@ -85,6 +85,13 @@ set(handles.checkbox_histogram, 'Value', funParams.gapCloseParam.diagnostics)
 
 set(handles.checkbox_merging, 'Value',ismember(funParams.gapCloseParam.mergeSplit,[1 2]));
 set(handles.checkbox_splitting, 'Value',ismember(funParams.gapCloseParam.mergeSplit,[1 3]));
+
+% add new param 2019-08
+if userData.MD.is3D
+    set(handles.checkbox_exportTrackabilityData, 'Value', funParams.saveResults.exportTrackabilityData)
+else
+    delete(handles.checkbox_exportTrackabilityData);
+end
     
 % Set cost matrics
 defaultLinkingCostMat = userData.crtProc.getDefaultLinkingCostMatrices(userData.MD,funParams.gapCloseParam.timeWindow);
@@ -207,6 +214,9 @@ funParams.verbose = get(handles.checkbox_verbose, 'Value');
 funParams.gapCloseParam.timeWindow = timeWindow;
 funParams.gapCloseParam.minTrackLen = minTrackLen;
 funParams.gapCloseParam.diagnostics = get(handles.checkbox_histogram, 'Value');
+if userData.MD.is3D
+    funParams.saveResults.exportTrackabilityData = get(handles.checkbox_exportTrackabilityData, 'Value');
+end
 
 if get(handles.checkbox_merging, 'Value') && get(handles.checkbox_splitting, 'Value')
     funParams.gapCloseParam.mergeSplit = 1;

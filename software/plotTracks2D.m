@@ -325,7 +325,7 @@ switch colorTime
         %plot tracks with the line color indicated
         %missing intervals are indicated by a dotted line
         lineWithGaps(tracksXP,tracksYP,removeGapParams);
-        lineWithGaps(tracksXP,tracksYP,'Color',colorTime,'Marker',markerType);
+        lineWithGaps(tracksXP,tracksYP,'Color',colorTime,'Marker',markerType); %,'LineWidth',2);
         
 end %(switch colorTime)
 

@@ -161,7 +161,7 @@ classdef  ComputeMIPProcess < ImageProcessingProcess & NonSingularProcess
             output(n).defaultDisplayMethod = @ImageDisplay;
             output(n).type = 'image';
 
-            if numel(obj.owner_.channels_) > 1 
+            if numel(obj.owner_.channels_) > 1 && numel(obj.funParams_.ChannelIndex) > 1
                 n = length(output)+1;
                 output(n).name = 'merged_all_three';
                 output(n).var = 'merged_all_three';

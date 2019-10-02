@@ -1,7 +1,7 @@
 function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
-    nnDistFeatures,prevCost,errFlag] = linkFeaturesKalmanSparse(movieInfo,...
+    nnDistFeatures,prevCost,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,...
     costMatName,costMatParam,kalmanFunctions,probDim,filterInfoPrev,...
-    prevCost,verbose)
+    prevCost,verbose,varargin)
 %LINKFEATURESKALMAN links features between consecutive frames using LAP and possibly motion propagation using the Kalman filter
 %
 %SYNOPSIS [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
@@ -172,6 +172,16 @@ if errFlag
     return
 end
 
+% To discuss: I propose to add new param through varargin to reduce 
+ip = inputParser;
+ip.CaseSensitive = false;
+ip.KeepUnmatched = true;
+ip.addParameter('estimateTrackability',false);
+ip.parse(varargin{:});
+p=ip.Results;
+
+
+
 %% preamble
 
 %get number of frames in movie
@@ -318,6 +328,13 @@ if verbose
     progressText(0,'Linking frame-to-frame');
 end
 
+%% To join in trackabilityData
+samplesDetections(length(movieInfo))=Detections();
+trackabilityCost=cell(1,length(movieInfo));
+samplingLabel=cell(1,length(movieInfo));
+votingLabel=cell(1,length(movieInfo));
+trackabilityCostFull=cell(1,length(movieInfo));
+
 %go over all frames
 for iFrame = 1 : numFrames-1
 
@@ -330,6 +347,21 @@ for iFrame = 1 : numFrames-1
         if numFeaturesFrame2 ~= 0 %if there are features in 2nd frame
             
             %calculate cost matrix
+            if(p.estimateTrackability)
+                %% Summarizing dynamic parameter for readability
+                dynCostMatParam.movieInfo=movieInfo;
+                dynCostMatParam.iFrame=iFrame;
+                dynCostMatParam.prevCostStruct=prevCostStruct;
+                dynCostMatParam.probDim=probDim;
+                dynCostMatParam.nnDistFeatures=nnDistFeatures(1:numFeaturesFrame1,:);
+                dynCostMatParam.movieInfo=movieInfo;
+                dynCostMatParam.featLifetime=featLifetime;
+                dynCostMatParam.trackedFeatureIndx=trackedFeatureIndx;
+
+                [trackabilityCost{iFrame},samplesDetections(iFrame),samplingLabel{iFrame},votingLabel{iFrame},trackabilityCostFull{iFrame}]= ...
+                    simulatedPredictionVoting(kalmanFilterInfo(iFrame),costMatName,costMatParam,dynCostMatParam);
+
+            end
             % -- USER DEFINED FUNCTION -- %
             eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
                 ' = ' costMatName '(movieInfo,kalmanFilterInfo(iFrame),'...
@@ -606,6 +638,19 @@ for iFrame = 1 : numFrames-1
     end
     
 end %(for iFrame=1:numFrames-1)
+
+lastFrameDet=Detections(movieInfo(end));
+samplesDetections(end)=Detections(movieInfo(end));
+trackabilityCost{end}=ones(lastFrameDet.getCard(),1);
+trackabilityCostFull{end}=zeros(lastFrameDet.getCard(),3);
+samplingLabel{end}=ones(lastFrameDet.getCard(),1);
+votingLabel{end}=ones(lastFrameDet.getCard(),1);
+
+trackabilityData.samplesDetections=samplesDetections;
+trackabilityData.trackabilityCost=trackabilityCost;
+trackabilityData.trackabilityCostFull=trackabilityCostFull;
+trackabilityData.samplingLabel=samplingLabel;
+trackabilityData.votingLabel=votingLabel;
 
 %add information from last frame to auxiliary matrices
 numRows = size(trackedFeatureIndx,1);
