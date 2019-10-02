@@ -579,6 +579,21 @@ for i=intersect(procId,validProcId)
     set(h,'Value',1);
 end
 
+% if procId was assigned and PointSourceDetectionProcess3DDynROI or TrackingDynROIProcess was selected on Overlay panel,
+% then selected radiobutton on Image panel should be changed from Raw image to BuildDynROIProcess.
+if ~isempty(i) && ~isempty(h) && isequal(h.Style, 'checkbox') && isequal(imagePanel.SelectedObject.String, ' Raw image')
+    switch class(validProc{i})
+        case {'PointSourceDetectionProcess3DDynROI', 'TrackingDynROIProcess'}
+            BuildDynROIProcId = validProcId(cellfun(@(x) isa(x, 'BuildDynROIProcess'),validProc));
+            if ~isempty(BuildDynROIProcId)
+                h2 = findobj(mainFig,'-regexp','Tag',['radiobutton_process' num2str(BuildDynROIProcId)  '_output2.*']);
+                set(h2,'Value',1);
+            else
+                set(h,'Value',0);
+            end
+    end
+end
+
 % Clear cache when initializing movieViewer
 cached.load('-clear');
 
