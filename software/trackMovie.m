@@ -39,16 +39,6 @@ paramsIn=ip.Results.paramsIn;
 %Parse input, store in parameter structure
 p = parseProcessParams(trackProc, paramsIn);
 
-% precondition / error checking
-if isa(trackProc, 'TrackingDynROIProcess')
-    buildDynROIProcId = movieData.getProcessIndex('BuildDynROIProcess'); % if numel(buildDynROIProcId) > 1, popup window will show and let user to choose which BuildDynROIProcess.
-    if isempty(buildDynROIProcId)
-        error("BuildDynROIProcess needs to be done before run TrackingDynROIProcess.")
-    elseif ~ismember(1, movieData.processes_{buildDynROIProcId}.funParams_.ChannelIndex)
-        error("Channel 1 in BuildDynROIProcess needs to be analyzed before run TrackingDynROIProcess.")
-    end
-end
-
 %% --------------- Initialization ---------------%%
 
 % Check detection process first
@@ -82,20 +72,27 @@ for i = p.ChannelIndex
     if p.saveResults.export
         outFilePaths{2,i} = [p.OutputDirectory filesep outFilename '_mat.mat'];
     end
-    if movieData.is3D && p.saveResults.exportTrackabilityData
-        outFilePaths{3,i} = [p.OutputDirectory filesep outFilename '_Trackability.mat'];
-    end
-
-    if movieData.is3D && (~isempty(p.processBuildDynROI))
-        outFilePaths{4,i} = [p.OutputDirectory filesep outFilename '_DynROIRef.mat'];
-    end
 end
 mkClrDir(p.OutputDirectory);
 trackProc.setOutFilePaths(outFilePaths);
 
 
+%% --------------- Adding capability to select time range frames ---------------%%% 
 
-
+% use movieInfo to check start/end frames for tracking
+% then get rid of detected features in movieInfo outside this range
+if ~isempty(p.timeRange) && isequal(unique(size(p.timeRange)), [1 2])
+    nFrames = length(movieInfo);
+    if p.timeRange(1) <= p.timeRange(2) && p.timeRange(2) <= nFrames
+        startFrame = p.timeRange(1);
+        endFrame = p.timeRange(2);
+    else
+        startFrame = 1;
+        endFrame = nFrames;
+    end
+elseif ~isempty(p.timeRange)
+    error('--TrackingProcess: timeRange should be [startFrame endFrame] or [] for all frames')
+end
 
 %% --------------- Displacement field calculation ---------------%%% 
 
@@ -104,24 +101,6 @@ disp('Starting tracking...')
 for i = p.ChannelIndex
 
     movieInfo = detProc.loadChannelOutput(i);
-
-    %% --------------- Adding capability to select time range frames ---------------%%% 
-
-    % use movieInfo to check start/end frames for tracking
-    % then get rid of detected features in movieInfo outside this range
-    if ~isempty(p.timeRange) && isequal(unique(size(p.timeRange)), [1 2])
-        nFrames = length(movieInfo);
-        if p.timeRange(1) <= p.timeRange(2) && p.timeRange(2) <= nFrames
-            startFrame = p.timeRange(1);
-        endFrame = p.timeRange(2);
-    else
-        startFrame = 1;
-    endFrame = nFrames;
-    end
-    elseif ~isempty(p.timeRange)
-        error('--TrackingProcess: timeRange should be [startFrame endFrame] or [] for all frames')
-    end
-
 
     if ~isempty(p.timeRange)
         %% --------------- Adding capability to select time range frames ---------------%%% 
@@ -136,51 +115,11 @@ for i = p.ChannelIndex
         clear oldMovieInfo
         %% --------------- Adding capability to select time range frames ---------------%%% 
     end
-
-    % If a dynROI specified, transform the coordinates accordingly
-    if movieData.is3D && (~isempty(p.processBuildDynROI))
-        if isa(p.processBuildDynROI, 'BuildDynROIProcess')
-            dynROICell=p.processBuildDynROI.loadChannelOutput(1); % iChan is mandatory input for BuildDynROIProcess.loadChannelOutput, BuildDynROIProcess used in package.
-        else
-            dynROICell=p.processBuildDynROI.loadChannelOutput(); % iChan is not mandatory input for BuilDynROI.loadChannelOutput
-        end
-        dynROI=dynROICell{1};
-        mappedDetections=dynROI.mapDetections(Detections(movieInfo));
-        ref=dynROI.getDefaultRef();
-        mappedDetectionsRef=ref.applyBase(mappedDetections);
-        mappedDetectionsRef.addOffset(1000,1000,1000);
-        movieInfo=mappedDetectionsRef.getStruct();
-    end
-
+    
     % Call function - return tracksFinal for reuse in the export
     % feature
-    if movieData.is3D
-        [tracksFinal,kalmanInfoLink,~,trackabilityData] = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
-            p.kalmanFunctions, p.probDim, 0, p.verbose,'estimateTrackability',p.EstimateTrackability);
-    else
-        tracksFinal = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
+    tracksFinal = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
         p.kalmanFunctions, p.probDim, 0, p.verbose);
-    end
-
-    if movieData.is3D && (~isempty(p.processBuildDynROI))
-        %% replace the trajectory with original detections
-        if isa(p.processBuildDynROI, 'BuildDynROIProcess')
-            dynROICell=p.processBuildDynROI.loadChannelOutput(1); % iChan is mandatory input for BuildDynROIProcess.loadChannelOutput, BuildDynROIProcess used in package.
-        else
-            dynROICell=p.processBuildDynROI.loadChannelOutput(); % iChan is not mandatory input for BuilDynROI.loadChannelOutput
-        end
-        dynROI=dynROICell{1};
-        ref=dynROI.getDefaultRef();
-        tracksFinalStripped=rmfield(tracksFinal,'tracksCoordAmpCG');
-        tracksOrigDetect=TracksHandle(tracksFinalStripped,mappedDetections.getStruct()); 
-        tracksDynROIRef=ref.applyBase(tracksOrigDetect);
-        [BBmin,BBmax]=dynROI.getBoundingBox(ref);
-        tracksDynROIRef.addOffset(-BBmin(1)+1,-BBmin(2)+1,-BBmin(3)+1);
-        tracksFinalDynROIRef_oldFormat=tracksDynROIRef.getStruct();
-        save(outFilePaths{4,i},'tracksDynROIRef','tracksFinalDynROIRef_oldFormat');
-        tracksFinal=tracksOrigDetect.getStruct()';
-    end
-    
     save(outFilePaths{1,i},'tracksFinal');
     
     % Optional export
@@ -194,10 +133,6 @@ for i = p.ChannelIndex
         end
         save(outFilePaths{2,i},'-struct','M');
         clear M;
-    end
-
-    if movieData.is3D && p.saveResults.exportTrackabilityData
-        save(outFilePaths{3,i},'trackabilityData');
     end
 end
 

@@ -34,7 +34,7 @@ function detectMoviePointSources3D(movieDataOrProcess,varargin)
 % 
 
 % Joy Xu / Sebastien Besson, July 2014
-% Philippe Roudot 2016-2018
+% Andrew R. Jamieson, March 2017
 
 %% ----------- Input ----------- %%
 
@@ -55,16 +55,6 @@ assert(movieData.is3D, 'detectMoviePointSources3D is specifically designed for 3
 
 %Parse input, store in parameter structure
 p = parseProcessParams(pointSourceDetProc3D, paramsIn);
-
-% precondition / error checking
-if isa(pointSourceDetProc3D, 'PointSourceDetectionProcess3DDynROI')
-    buildDynROIProcId = movieData.getProcessIndex('BuildDynROIProcess'); % if numel(buildDynROIProcId) > 1, popup window will show and let user to choose which BuildDynROIProcess.
-    if isempty(buildDynROIProcId)
-        error("BuildDynROIProcess needs to be done before run PointSourceDetectionProcess3DDynROI.")
-    elseif ~ismember(1, movieData.processes_{buildDynROIProcId}.funParams_.ChannelIndex)
-        error("Channel 1 in BuildDynROIProcess needs to be analyzed before run PointSourceDetectionProcess3DDynROI.")
-    end
-end
 
 %% --------------- Initialization ---------------%%
 if feature('ShowFigureWindows')
@@ -121,8 +111,6 @@ end
 %Check the input processes if any and get loader handles for each channel
 imDirs = cell(1, nChanDet);
 imLoader = cell(1, nChanDet);
-
-
 for j = 1:nChanDet
     if p.InputImageProcessIndex(j) > 0
         %Check the specified input process
@@ -130,14 +118,10 @@ for j = 1:nChanDet
         imDirs{p.ChannelIndex(j)} = movieData.processes_{p.InputImageProcessIndex(j)}.outFilePaths_{p.ChannelIndex(j)};
         imLoader{p.ChannelIndex(j)} = @(f)(movieData.processes_{p.InputImageProcessIndex(j)}.loadChannelOutput(p.ChannelIndex(j),f));                         
     else
-        if(~isempty(p.processBuildDynROI)&&p.processBuildDynROI.isSwaped())
-            movieData=p.processBuildDynROI.loadSwap(1);
-            imDirs{p.ChannelIndex(j)} = movieData.channels_(p.ChannelIndex(j)).channelPath_;
-            imLoader{p.ChannelIndex(j)} = @(f)(movieData.channels_(p.ChannelIndex(j)).loadStack(f));
-        else
-            imDirs{p.ChannelIndex(j)} = movieData.channels_(p.ChannelIndex(j)).channelPath_;
-            imLoader{p.ChannelIndex(j)} = @(f)(movieData.channels_(p.ChannelIndex(j)).loadStack(f));
-        end
+        %If raw data specified
+        imDirs{p.ChannelIndex(j)} = movieData.channels_(p.ChannelIndex(j)).channelPath_;
+        imLoader{p.ChannelIndex(j)} = @(f)(movieData.channels_(p.ChannelIndex(j)).loadStack(f));
+        
     end    
 end
 
@@ -156,11 +140,9 @@ outFilePaths = cell(1, numel(movieData.channels_));
 for i = p.ChannelIndex;    
     %Create string for current directory
     outFilePaths{1,i} = [p.OutputDirectory filesep 'channel_' num2str(i) '.mat'];
-    if ~isempty(p.processBuildDynROI)
-        outFilePaths{2,i} = [p.OutputDirectory filesep 'channel_DynROIRef' num2str(i) '.mat'];
-    end
+    %outFilePaths{2,i} = [p.OutputDirectory filesep 'channel_detectionLabRef' num2str(i) '.mat'];
 end
-mkClrDir(p.OutputDirectory);
+mkClrDir(p.OutputDirectory)
 pointSourceDetProc3D.setOutFilePaths(outFilePaths);
 
 %Get ROI mask if any.
@@ -187,21 +169,10 @@ for i = 1:numel(p.ChannelIndex)
     iChan = p.ChannelIndex(i);
     % Set up for parfor
     detP = splitPerChannelParams(p, iChan);
-    if(isempty(detP.frameRange))
-        detP.frameRange(2)=movieData.nFrames_;
-        detP.frameRange(1)=1;
-    end
-        
+
     processFrames = detP.frameRange(1):detP.frameRange(2);
     labels = cell(1,numel(processFrames));
-
-    %% saving maps and detection for debug purposes
-    debugVols = cell(1,numel(processFrames));
-
     movieInfo(numel(processFrames), 1) = struct('xCoord', [], 'yCoord',[],'zCoord', [], 'amp', [], 'int',[]);
-    debugPos(numel(processFrames))=Detections;
-    labelSegPos(numel(processFrames))=Detections;
-
                      
     % Log display
     disp(logMsg(iChan))
@@ -239,52 +210,26 @@ for i = 1:numel(p.ChannelIndex)
         disp(['Processing time point ' num2str(frameIdx,'%04.f')])
         
         % loading the entire stack
+        % Hunter's approach
         detP_pf = detP;
         vol = double(imLoader{iChan}(timePoint));
-                lab = [];
-        debugVol=[];
-        energyMap=[];
-
-        %% build cuboid mask from dynROI
-        ROI=[];
-        maskMinY=[];maskMinX=[];maskMinZ=[];
-        maskMaxX=[];maskMaxY=[];maskMaxZ=[];
-        if(~isempty(detP.processBuildDynROI))
-            tmp=detP.processBuildDynROI.loadFileOrCache(); % try initDynROIs
-            dynROICell=tmp{1}.dynROICell;
-            dynROI=dynROICell{1};
-            [BBmin,BBmax]=dynROI.getBoundingBox();
-            maskMinX=BBmin(2); maskMinY=BBmin(1); maskMinZ=ceil(BBmin(3)/ZXRatio); 
-            maskMaxX=BBmax(2); maskMaxY=BBmax(1); maskMaxZ=floor(BBmax(3)/ZXRatio); 
-        end
-
-        if(~isempty(detP.processBuildDynROI)&&~(detP.processBuildDynROI.isSwaped()))
-            % ROI=false(size(vol));
-            % ROI(max(maskMinX,1):min(maskMaxX,end),max(1,maskMinY):min(end,maskMaxY),max(maskMinZ,1):min(end,maskMaxZ))=true;
-            % disp('getBoundingBox');
-            % [maskMinX,maskMinY,maskMinZ]=ind2sub(size(ROI), find(ROI,1));
-            % [maskMaxX,maskMaxY,maskMaxZ]=ind2sub(size(ROI), find(ROI,1,'last'));
-            % tmp = nan(1+[maskMaxX,maskMaxY,maskMaxZ]-[maskMinX,maskMinY,maskMinZ]);
-            % size(tmp)
-            % tmp(:) = vol(ROI);
-            % origVol=vol;
-            % vol = tmp;
-
-            tmp=detP.processBuildDynROI.loadFileOrCache(); % try initDynROIs
-            dynROICell=tmp{1}.dynROICell;
-            dynROI=dynROICell{1};
-            [vol,ROI]=dynROI.cropBoundingVol(vol,ZXRatio);
-        end
-
-
-        samplePos=[];
-        if(~isempty(detP.samplePos))  
-            samplePos=detP.samplePos(timePoint);
-            if (~isempty(ROI))
-                samplePos.addOffset(-maskMinY+1,-maskMinX+1,-maskMinZ+1);
-            end
+        
+        % Philippe's approach
+        % vol = double(movieData.getChannel(iChan).loadStack(timePoint)); #
+        volSize = size(vol);
+        lab = [];
+        
+        % find mask offset (WARNING works only for cubic mask)
+        if (~isempty(ROI))
+            [maskMinX,maskMinY,maskMinZ]=ind2sub(size(ROI), find(ROI,1));
+            [maskMaxX,maskMaxY,maskMaxZ]=ind2sub(size(ROI), find(ROI,1,'last'));
         end
         
+        if(~isempty(ROI))
+            tmp = nan(1+[maskMaxX,maskMaxY,maskMaxZ]-[maskMinX,maskMinY,maskMinZ]);
+            tmp(:) = vol(ROI>0);
+            vol = tmp;
+        end
         
 %         %!!!!! fix the mask for 3d data!!!!!%
         if ~isempty(maskProc)
@@ -302,94 +247,60 @@ for i = 1:numel(p.ChannelIndex)
                   'pointSourceAutoSigmaFit',...
                   'pointSourceFit',...
                   'pSAutoSigmaMarkedWatershed',... 
-                  'pointSourceAutoSigmaLM',...   
-                  'pSWatershed',...
+                  'pointSourceAutoSigmaLM',...     
                   'pSAutoSigmaWatershed'}
-
-                [pstruct, mask,imgLM] = pointSourceDetection3D(vol, sigmasPSF, detP_pf);
+                [pstruct, mask, imgLM, imgLoG] = pointSourceDetection3D(vol, sigmasPSF, detP_pf);
                 
                 switch detP.algorithmType
                       case {'pointSource','pointSourceAutoSigma'}
-                       lab = uint8(mask); 
+                       lab = double(mask); 
                         movieInfo(frameIdx) = labelToMovieInfo(double(mask),vol);
                       case {'pointSourceLM','pointSourceAutoSigmaLM'}
-                        lab = uint8(mask); 
+                        lab = double(mask); 
                         movieInfo(frameIdx) = pointCloudToMovieInfo(imgLM,vol);  
                       case 'pSAutoSigmaMarkedWatershed'
                         wat = markedWatershed(vol,sigmasPSF,0);
                         wat(mask==0) = 0;       
-                        lab = uint8(wat); 
+                        lab = double(wat); 
                         movieInfo(frameIdx) = labelToMovieInfo(double(wat),vol);
-                      case {'pSAutoSigmaWatershed','pSWatershed'}
+                      case 'pSAutoSigmaWatershed'
                         wat = watershed(-vol.*mask);
                         wat(mask==0) = 0;
-                        lab = uint8(wat); 
+                        lab = double(wat); 
                         movieInfo(frameIdx) = labelToMovieInfo(double(wat),vol);
                       case {'pointSourceFit','pointSourceAutoSigmaFit'}
                         movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                        lab = uint8(mask); %.*imgLoG;
+                        lab = double(mask); %.*imgLoG;
                     otherwise
                 end
             
-            case {'pointSourceLM','pointSourceAutoSigmaLM'}
-                [pstruct, mask, imgLM] = pointSourceDetection3D(vol, sigmasPSF, detP_pf);
-                lab = uint8(mask); 
-                movieInfo(frameIdx) = pointCloudToMovieInfo(imgLM,vol); 
             case {'pointSourceAutoSigmaMixture'}
                 detPt = detP_pf;
                 detPt.FitMixtures = true;
-                [pstruct, mask, imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
+                [pstruct, mask, imgLM, imgLoG] = pointSourceDetection3D(vol,sigmasPSF,detPt);
                 movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                lab = uint8(mask); % adjust label
+                lab = double(mask); % adjust label
 
             case {'pointSourceAutoSigmaFitSig'}
                 detPt = detP_pf;
                 detPt.Mode = 'xyzAcsr';
-                [pstruct,mask,imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
+                [pstruct,mask,imgLM,imgLoG] = pointSourceDetection3D(vol,sigmasPSF,detPt);
                 movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                lab = uint8(mask); % adjust label
-
-            case {'multiscaleDetection'}
-                detPt = detP_pf;
-                [imgLM,scaleVol]=multiscaleStochasticFiltering(vol,1./ZXRatio,detPt);
-                movieInfo(frameIdx) = pointCloudToMovieInfo(imgLM,vol);  
-                lab=imgLM;
-            case {'multiscaleDetectionDebug'}
-                detPt = detP_pf;
-                [pos,labelSeg,energyMap]=multiscaleStochasticFiltering(vol,1./ZXRatio,detPt,'deepakImplementation',true,'samplePos',samplePos);
-                movieInfo(frameIdx) = pos;  
-                lab=labelSeg;
-                debugVol={energyMap};
-
-            case {'multiscaleDetectionDebugSeparable'}
-                detPt = detP_pf;
-                [pos,labelSeg,energyMap]=multiscaleStochasticFiltering(vol,1./ZXRatio,detPt,'deepakImplementation',false,'samplePos',samplePos);
-                movieInfo(frameIdx) = pos;  
-                lab=labelSeg;
-                debugVol={energyMap};
-            case {'labelToDetectionStruct'}
-                movieInfo(frameIdx) = labelToMovieInfo(vol,vol);
-                lab=vol;
-                
-            case {'fastBlobFinder'}
-                detPt = detP_pf;
-                [pos,imgLoG]=fastBlobFinder(vol,sigmasPSF, detPt);
-                movieInfo(frameIdx) = Detections().initFromPosMatrices(pos,pos).getStruct();
-                lab=[];
+                lab = double(mask); % adjust label
 
             case {'pointSourceFitSig'}
                 detPt = detP_pf;
                 detPt.Mode = 'xyzAcsr';
-                [pstruct,mask,imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
+                [pstruct,mask,imgLM,imgLoG] = pointSourceDetection3D(vol,sigmasPSF,detPt);
                 movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                lab = uint8(mask); % adjust label
+                lab = double(mask); % adjust label
                 
             case {'pointSourceAutoSigmaFitSig'}
                     detPt = detP_pf;
                     detPt.Mode = 'xyzAcsr';
-                    [pstruct,mask,imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
+                    [pstruct,mask,imgLM,imgLoG] = pointSourceDetection3D(vol,sigmasPSF,detPt);
                     movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                        lab = uint8(mask); % adjust label                
+                        lab = double(mask); % adjust label                
 
             % ----------------------------------------------------------------------------------------
             case 'watershedApplegate'
@@ -425,77 +336,32 @@ for i = 1:numel(p.ChannelIndex)
             otherwise 
                 error('Supported detection algorithm method:');
         end
+        
+        if isfield(p, 'isoCoord') && p.isoCoord
+            movieInfo(frameIdx).zCoord(:,1)=movieInfo(frameIdx).zCoord(:,1)*ZXRatio;
+        end
 
-        % rawMovieInfo=movieInfo;
-
-        if(~isempty(detP.processBuildDynROI))
-            if(~isempty(movieInfo(frameIdx).xCoord))
+        if(~isempty(ROI))
+            tmplab=zeros(volSize);
+            tmplab(ROI>0)=lab;
+            lab=tmplab; 
             movieInfo(frameIdx).xCoord(:,1)=movieInfo(frameIdx).xCoord(:,1)+maskMinY-1;
             movieInfo(frameIdx).yCoord(:,1)=movieInfo(frameIdx).yCoord(:,1)+maskMinX-1;
             movieInfo(frameIdx).zCoord(:,1)=movieInfo(frameIdx).zCoord(:,1)+maskMinZ-1;
-            end
-            if(~isempty(detP.samplePos))  
-                samplePos.addOffset(maskMinY-1,maskMinX-1,maskMinZ-1);
-            end
-            
-        end  
-
-
-        if(~isempty(detP.saveMaskFilePattern))
-            stackWrite(uint16(lab),sprintfPath(detP.saveMaskFilePattern,frameIdx));
-
-        end
-        labDet=Detections().initFromPointCloud(lab,lab,1);
-        if(~isempty(detP.processBuildDynROI))
-            labDet.addOffset(maskMinY-1,+maskMinX-1,maskMinZ-1);
-        end
-
-        debugDet=Detections();
-        if(~isempty(energyMap))
-            debugDet=Detections().initFromPointCloud(energyMap,energyMap,1);
-            if(~isempty(detP.processBuildDynROI))
-                debugDet.addOffset(maskMinY-1,maskMinX-1,maskMinZ-1);
-            end
-        end
-
-   
-        if isfield(p, 'isoCoord') && p.isoCoord && (~isempty(movieInfo(frameIdx).zCoord))
-            movieInfo(frameIdx).zCoord(:,1)=movieInfo(frameIdx).zCoord(:,1)*ZXRatio;
-            labDet.zCoord(:,1)=labDet.zCoord(:,1)*ZXRatio;
-            if(~isempty(debugDet))
-                if(~isempty(debugDet.zCoord))
-                    debugDet.zCoord(:,1)=debugDet.zCoord(:,1)*ZXRatio;
-                end
-            end
-        end
-        % MDout=dynROI.swapRawBoundingBox(movieData,'testROI')
-        % croppedVol=vol;
-        % vol = double(imLoader{iChan}(timePoint));
-        % testDynROIOverlay(dynROI,croppedVol,vol,rawMovieInfo,movieInfo,frameIdx,ZXRatio);
-        
-        debugPos(frameIdx)=debugDet;
-
-        labelSegPos(frameIdx)=labDet;
-
+        end    
+        labels{frameIdx}=lab;
     end %%%% end parfor (frame loop)
+    
     if ~exist('movieInfo','var')
         %in the case that no channels/frames had detected points
         movieInfo = [];
     end
+    %     for fIdx=1:length(detectionLabRef)
+%         detectionLabRef(fIdx).zCoord(:,1)=detectionLabRef(fIdx).zCoord(:,1)*movieData.pixelSizeZ_/movieData.pixelSize_;
+%     end
 
-
-    save(outFilePaths{1,iChan}, 'movieInfo','debugPos','labelSegPos');
-
-    if(~isempty(detP.processBuildDynROI))             
-        tmp=detP.processBuildDynROI.loadFileOrCache(); % try initDynROIs
-        dynROICell=tmp{1}.dynROICell;
-        dynROI=dynROICell{1};
-        detDynROIRef=dynROI.getDefaultRef().applyBase(Detections(movieInfo));
-        [BBmin,BBmax]=dynROI.getBoundingBox(dynROI.getDefaultRef());
-        detDynROIRef.addOffset(-BBmin(1)+1,-BBmin(2)+1,-BBmin(3)+1);
-        movieInfoDynROIRef=detDynROIRef.getStruct();
-        save(outFilePaths{2,iChan}, 'movieInfoDynROIRef');
-    end
+    save(outFilePaths{1,iChan}, 'movieInfo', 'labels');
+    %save(outFilePaths{2,iChan}, 'detectionLabRef');
     
 %     clear movieInfo detectionLabRef;
     clear movieInfo;
@@ -508,9 +374,9 @@ disp('Finished detecting diffraction-limited objects!')
 movieData.save;
 
 
-function [movieInfo,feats]= labelToMovieInfo(label,vol)
+function movieInfo= labelToMovieInfo(label,vol)
     [feats,nFeats] = bwlabeln(label);
-    featsProp = regionprops(feats,vol,'WeightedCentroid','MeanIntensity','MaxIntensity');
+    featsProp = regionprops(feats,vol,'Area','WeightedCentroid','MeanIntensity','MaxIntensity','PixelValues');
 
     movieInfo=struct('xCoord',[],'yCoord',[],'zCoord',[],'amp',[],'int',[]);
     
@@ -577,180 +443,3 @@ function threshNoise= QDApplegateThesh(filterDiff,show)
         figure();hist(thFilterDiff,100),vline([threshNoise, threshold],['-b','-r']);
     end 
 
-
-
-function testDynROIOverlay(dynROI,croppedVol,vol,rawMovieInfo,movieInfo,frameIdx,ZXRatio)
-    origVolSize=size(vol);
-    vol=zeros(size(vol));
-    pos=ceil(size(vol).*rand(500,3));
-    vol(sub2ind(size(vol),pos(:,1),pos(:,2),pos(:,3)))=1000;
-    pos=pos(:,[2 1 3]);
-    scaledPos=pos;
-    scaledPos(:,3)=ZXRatio*scaledPos(:,3);
-    
-    movieInfo=Detections().initFromPosMatrices(arrayfun(@(d) scaledPos,1:numel(movieInfo),'unif',0),arrayfun(@(d) scaledPos,1:numel(movieInfo),'unif',0));
-
-    tracks=movieInfo.buildTracksFromDetection();
-    dynROI=TracksROI(tracks(1),20);
-
-    movieInfo=dynROI.mapDetections(movieInfo);
-
-
-
-
-    % Testing if dynROI volume rendering and overlay are correctly aligned
-    % Visual feedback
-    [Handles,~,F]=setupFigure(4,3,12);
-
-    % Basic display using masked full volume 
-    [subVol,ROI]=dynROI.cropBoundingVol(vol,ZXRatio);
-    maskedVol=zeros(size(vol));
-    maskedVol(:)=min(subVol(:));
-    maskedVol(ROI>0)=subVol;
-    maskedVol=imresize3(maskedVol,[size(vol,1) size(vol,2) ceil(ZXRatio*size(vol,3))],'nearest');
-
-    det=Detections(movieInfo);
-    s=det(frameIdx).getAllStruct();
-    X=s.x;
-    Y=s.y;
-    Z=s.z;
-
-    XY=mat2gray(max(maskedVol,[],3));
-    ZY=mat2gray(squeeze(max(maskedVol,[],2)));
-    ZX=mat2gray(squeeze(max(maskedVol,[],1)));
-
-    H=Handles(1);
-    imshow(XY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,X,Y,100,'r','linewidth',2);
-    hold(H,'off')
-    H=Handles(2);
-    imshow(ZY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,Y,100,'r','linewidth',2);
-    hold(H,'off')   
-    H=Handles(3);
-    imshow(ZX, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,X,100,'r','linewidth',2);
-    hold(H,'off')  
-
-     % Basic display using normal crop on
-    [subVol,ROI,minCoord]=dynROI.cropBoundingVol(vol,ZXRatio);
-    subVol=imresize3(subVol,[size(subVol,1) size(subVol,2) ceil(ZXRatio*size(subVol,3))]);
-
-    det=Detections(movieInfo);
-    s=det(frameIdx).getAllStruct();
-    X=s.x-minCoord(1)+1;
-    Y=s.y-minCoord(2)+1;
-    Z=s.z-ZXRatio*(minCoord(3)-1);
-    % X=[X 0 1];
-    % Y=[Y 0 1];
-    % Z=[Z 0 1];
-    XY=mat2gray(max(subVol,[],3));
-    ZY=mat2gray(squeeze(max(subVol,[],2)));
-    ZX=mat2gray(squeeze(max(subVol,[],1)));
-
-    H=Handles(4);
-    imshow(XY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,X,Y,100,'r','linewidth',2);
-    hold(H,'off')
-    H=Handles(5);
-    imshow(ZY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,Y,100,'r','linewidth',2);
-    hold(H,'off')   
-    H=Handles(6);
-    imshow(ZX, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,X,100,'r','linewidth',2);
-    hold(H,'off')  
-
-
-    % Building subvolume, transforming coordinate, scaling and overlay.
-    [subVol,minCoord,maxCoord] = dynROI.getSubVol(vol,ZXRatio,frameIdx);
-    % MinCoord is the zeros of subVolume
-    % MaxCoord is the size(subVol)
-    det=Detections(movieInfo);
-    ref=dynROI.getDefaultRef();
-    detRef=ref.applyBase(det);
-
-    [BBmin,BBmax]=dynROI.getBoundingBox(ref,frameIdx);
-    minCoord
-    maxCoord
-    s=detRef(frameIdx).getAllStruct();
-    disp(num2str(maxCoord-minCoord));
-    disp(size(subVol));
-    sX=size(subVol,2);
-    sY=size(subVol,1);
-    sZ=size(subVol,3);
-
-    % s.x=[minCoord(1) maxCoord(1) 0];
-    % s.y=[minCoord(2) maxCoord(2) 0];
-    % s.z=[minCoord(3) maxCoord(3) 0];
-    r=(sX-1)/(maxCoord(1)-minCoord(1))
-    X=s.x*r+sX-r*maxCoord(1)
-    r=(sY-1)/(maxCoord(2)-minCoord(2));
-    Y=s.y*r+sY-r*maxCoord(2);
-    r=(sZ-1)/(maxCoord(3)-minCoord(3));
-    Z=s.z*r+sZ-r*maxCoord(3);
-  
-
-    XY=mat2gray(max(subVol,[],3));
-    ZY=mat2gray(squeeze(max(subVol,[],2)));
-    ZX=mat2gray(squeeze(max(subVol,[],1)));
-
-    isoHandle=setupFigure(1,3,3);
-    H=Handles(7);
-    H=isoHandle(1);
-    imshow(XY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,X,Y,100,'r','linewidth',2);
-    hold(H,'off')
-    H=Handles(8);
-    H=isoHandle(2);
-    imshow(ZY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,Y,100,'r','linewidth',2);
-    hold(H,'off')   
-    H=Handles(9);
-    H=isoHandle(3);
-    imshow(ZX, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,X,100,'r','linewidth',2);
-    hold(H,'off')  
-
-    %% cropped Vol
-    croppedVol=imresize3(croppedVol,[size(croppedVol,1) size(croppedVol,2) ceil(ZXRatio*size(croppedVol,3))]);
-
-    XY=mat2gray(max(croppedVol,[],3));
-    ZY=mat2gray(squeeze(max(croppedVol,[],2)));
-    ZX=mat2gray(squeeze(max(croppedVol,[],1)));
-    det=Detections(rawMovieInfo);
-    s=det(frameIdx).getAllStruct();
-    X=s.x;
-    Y=s.y;
-    Z=ZXRatio*s.z;
-
-    %% Scaling: 
-    %% 1) we want (1,1,1) to be (1,1,1) on the volume
-    %% 2) we want (size(croppedVolume))
-
-   
-    hoffset=9;
-    H=Handles(hoffset+1);
-    imshow(XY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,X,Y,100,'r','linewidth',2);
-    hold(H,'off')
-    H=Handles(hoffset+2);
-    imshow(ZY, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,Y,100,'r','linewidth',2);
-    hold(H,'off')   
-    H=Handles(hoffset+3);
-    imshow(ZX, 'Parent', H);
-    hold(H,'on');
-    scatter(H,Z,X,100,'r','linewidth',2);
-    hold(H,'off')  

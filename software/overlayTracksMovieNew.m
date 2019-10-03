@@ -363,7 +363,7 @@ trackStatus  = (trackSEL(:,1) == tracksFirstFrame) + (trackSEL(:,2) == tracksLas
 %give all tracks same classification if lifetime classification not
 %requested
 if classifyLft == 0
-    %     trackStatus(:) = 2;
+%     trackStatus(:) = 2;
     trackStatus(:) = 0;
 end
 
@@ -640,75 +640,41 @@ if ~isempty(diffAnalysisRes)
         
     else %if whole track diffusion classification ...
         
-        if isfield(diffAnalysisRes,'classification') %MSS diffusion analysis
-            
-            %get track segment types from diffusion analysis
-            trackSegmentType = vertcat(diffAnalysisRes.classification);
-            
-            %assign classes
-            trackClass = zeros(numSegmentsTracks,1); %initialize with the indicator for undetermined
-            trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 1) = 1; %linear + 1D confined (orange)
-            trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 2) = 2; %linear + 1D normal (red)
-            trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 3) = 3; %linear + 1D super (green)
-            trackClass(trackSegmentType(:,1) == 1 & isnan(trackSegmentType(:,3))) = 4; %linear + too short (yellow)
-            trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 1) = 5; %random/unclassified + 2D confined (blue)
-            trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 2) = 6; %random/unclassified + 2D normal (cyan)
-            trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 3) = 7; %random/unclassified + 2D super (magenta)
-            trackClass(trackSegmentType(:,1) == 0 & isnan(trackSegmentType(:,2))) = 8; %random + too short (purple)
-            
-            %extract the tracks/track segments of different classifications
-            %x-coordinates
-            xCoordMatAll0(trackClass~=0,:) = NaN;
-            xCoordMatAll1(trackClass~=1,:) = NaN;
-            xCoordMatAll2(trackClass~=2,:) = NaN;
-            xCoordMatAll3(trackClass~=3,:) = NaN;
-            xCoordMatAll4(trackClass~=4,:) = NaN;
-            xCoordMatAll5(trackClass~=5,:) = NaN;
-            xCoordMatAll6(trackClass~=6,:) = NaN;
-            xCoordMatAll7(trackClass~=7,:) = NaN;
-            xCoordMatAll8(trackClass~=8,:) = NaN;
-            %y-coordinates
-            yCoordMatAll0(trackClass~=0,:) = NaN;
-            yCoordMatAll1(trackClass~=1,:) = NaN;
-            yCoordMatAll2(trackClass~=2,:) = NaN;
-            yCoordMatAll3(trackClass~=3,:) = NaN;
-            yCoordMatAll4(trackClass~=4,:) = NaN;
-            yCoordMatAll5(trackClass~=5,:) = NaN;
-            yCoordMatAll6(trackClass~=6,:) = NaN;
-            yCoordMatAll7(trackClass~=7,:) = NaN;
-            yCoordMatAll8(trackClass~=8,:) = NaN;
-            
-        else %diffusion MODE analysis
-            
-            %THIS IS A HACK. ASSUME ONLY TWO MODES FOR NOW.
-            
-            %get track segment modes from diffusion analysis
-            trackClass = vertcat(diffAnalysisRes.diffMode);
-            trackClass(isnan(trackClass)) = 0;
-            
-            %extract the tracks/track segments of different modes
-            %x-coordinates
-            xCoordMatAll0(trackClass~=0,:) = NaN;
-            xCoordMatAll1(trackClass~=1,:) = NaN; %blue
-            xCoordMatAll2(trackClass~=2,:) = NaN; %red
-            %             xCoordMatAll3(trackClass~=3,:) = NaN;
-            %             xCoordMatAll4(trackClass~=4,:) = NaN;
-            %             xCoordMatAll5(trackClass~=5,:) = NaN;
-            %             xCoordMatAll6(trackClass~=6,:) = NaN;
-            %             xCoordMatAll7(trackClass~=7,:) = NaN;
-            %             xCoordMatAll8(trackClass~=8,:) = NaN;
-            %y-coordinates
-            yCoordMatAll0(trackClass~=0,:) = NaN;
-            yCoordMatAll1(trackClass~=1,:) = NaN;
-            yCoordMatAll2(trackClass~=2,:) = NaN;
-            %             yCoordMatAll3(trackClass~=3,:) = NaN;
-            %             yCoordMatAll4(trackClass~=4,:) = NaN;
-            %             yCoordMatAll5(trackClass~=5,:) = NaN;
-            %             yCoordMatAll6(trackClass~=6,:) = NaN;
-            %             yCoordMatAll7(trackClass~=7,:) = NaN;
-            %             yCoordMatAll8(trackClass~=8,:) = NaN;
-            
-        end
+        %get track segment types from diffusion analysis
+        trackSegmentType = vertcat(diffAnalysisRes.classification);
+        
+        %assign classes
+        trackClass = zeros(numSegmentsTracks,1); %initialize with the indicator for undetermined
+        trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 1) = 1; %linear + 1D confined (orange)
+        trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 2) = 2; %linear + 1D normal (red)
+        trackClass(trackSegmentType(:,1) == 1 & trackSegmentType(:,3) == 3) = 3; %linear + 1D super (green)
+        trackClass(trackSegmentType(:,1) == 1 & isnan(trackSegmentType(:,3))) = 4; %linear + too short (yellow)
+        trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 1) = 5; %random/unclassified + 2D confined (blue)
+        trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 2) = 6; %random/unclassified + 2D normal (cyan)
+        trackClass(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 3) = 7; %random/unclassified + 2D super (magenta)
+        trackClass(trackSegmentType(:,1) == 0 & isnan(trackSegmentType(:,2))) = 8; %random + too short (purple)
+        
+        %extract the tracks/track segments of different classifications
+        %x-coordinates
+        xCoordMatAll0(trackClass~=0,:) = NaN;
+        xCoordMatAll1(trackClass~=1,:) = NaN;
+        xCoordMatAll2(trackClass~=2,:) = NaN;
+        xCoordMatAll3(trackClass~=3,:) = NaN;
+        xCoordMatAll4(trackClass~=4,:) = NaN;
+        xCoordMatAll5(trackClass~=5,:) = NaN;
+        xCoordMatAll6(trackClass~=6,:) = NaN;
+        xCoordMatAll7(trackClass~=7,:) = NaN;
+        xCoordMatAll8(trackClass~=8,:) = NaN;
+        %y-coordinates
+        yCoordMatAll0(trackClass~=0,:) = NaN;
+        yCoordMatAll1(trackClass~=1,:) = NaN;
+        yCoordMatAll2(trackClass~=2,:) = NaN;
+        yCoordMatAll3(trackClass~=3,:) = NaN;
+        yCoordMatAll4(trackClass~=4,:) = NaN;
+        yCoordMatAll5(trackClass~=5,:) = NaN;
+        yCoordMatAll6(trackClass~=6,:) = NaN;
+        yCoordMatAll7(trackClass~=7,:) = NaN;
+        yCoordMatAll8(trackClass~=8,:) = NaN;
         
     end %(if transDiffClass ... else ...)
     
@@ -812,7 +778,6 @@ for iFrame = 1 : numFramesMovie
     %plot image in current frame and show frame number
     clf;
     switch showRaw
-        
         case 1
             
             axes('Position',[0 0 0.495 1]);
@@ -844,7 +809,6 @@ for iFrame = 1 : numFramesMovie
             %             plot([207 207],[50 177],'y:','LineWidth',0.5)
             
         case 2
-            
             axes('Position',[0 0.505 1 0.495]);
             imshow(imageStack,intensityMinMax);
             %             xlim(imageRange(2,:));
@@ -865,9 +829,7 @@ for iFrame = 1 : numFramesMovie
             %             xlim(imageRange(2,:));
             %             ylim(imageRange(1,:));
             hold on;
-            
         otherwise
-            
             axes('Position',[0 0 1 1]);
             imshow(imageStack,intensityMinMax);
             %             xlim(imageRange(2,:));
@@ -877,13 +839,9 @@ for iFrame = 1 : numFramesMovie
             %             text(imageRange(2,1)+textDeltaCoord,imageRange(1,1)+...
             %                 textDeltaCoord,num2str(iFrame+startend(1)-1),...
             %                 'Color','white','FontSize',18);
-            %             text(textDeltaCoord,...
-            %                 textDeltaCoord,num2str(iFrame+startend(1)-1),...
-            %                 'Color','white','FontSize',18);
             text(textDeltaCoord,...
-                textDeltaCoord,[num2str(((iFrame+startend(1)-1)-1)*0.1,'%4.1f') ' s'],...
-                'Color','white','FontSize',16);
-            
+                textDeltaCoord,num2str(iFrame+startend(1)-1),...
+                'Color','white','FontSize',18);
     end
     
     %get tracks to plot
@@ -968,13 +926,11 @@ for iFrame = 1 : numFramesMovie
         %plot basic tracks
         plot([xCoord2plot0(1,:); xCoord2plot0],[yCoord2plot0(1,:); yCoord2plot0],...
             'Color',[1 0.7 0.7],'LineWidth',1); %light pink; the artificial repetition of the first line is for avoiding a mess in the first frame when tracks are not color-coded individually
-        
+                         
         %color individual tracks randomly if requested
         if colorTracks == 1
-            plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0.7],'LineWidth',1); %orange
-            plot(xCoord2plot2,yCoord2plot2,'Color',[1 0.7 0.7],'LineWidth',1); %[1 0 0]
-%             plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0],'LineWidth',1); %orange
-%             plot(xCoord2plot2,yCoord2plot2,'Color','r','LineWidth',1); %[1 0 0]
+            plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0],'LineWidth',1); %orange
+            plot(xCoord2plot2,yCoord2plot2,'Color','r','LineWidth',1); %[1 0 0]
             plot(xCoord2plot3,yCoord2plot3,'Color','g','LineWidth',1); %[0 1 0]
             plot(xCoord2plot4,yCoord2plot4,'Color','y','LineWidth',1); %[1 1 0]
             plot(xCoord2plot5,yCoord2plot5,'Color','b','LineWidth',1); %[0 0 1]
@@ -985,22 +941,15 @@ for iFrame = 1 : numFramesMovie
         
         %color-code dragtail based on diffusion analysis if supplied
         if ~isempty(diffAnalysisRes)
-            if isfield(diffAnalysisRes,'classification') %MSS analysis
-                plot(xCoord2plot5,yCoord2plot5,'Color','b','LineWidth',1); %[0 0 1]
-                plot(xCoord2plot6,yCoord2plot6,'Color','c','LineWidth',1); %[0 1 1]
-                plot(xCoord2plot7,yCoord2plot7,'Color','m','LineWidth',1); %[1 0 1]
-                if ~transDiffClass
-                    plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0],'LineWidth',1); %orange
-                    plot(xCoord2plot2,yCoord2plot2,'Color','r','LineWidth',1); %[1 0 0]
-                    plot(xCoord2plot3,yCoord2plot3,'Color','g','LineWidth',1); %[0 1 0]
-                    plot(xCoord2plot4,yCoord2plot4,'Color','y','LineWidth',1); %[1 1 0]
-                    plot(xCoord2plot8,yCoord2plot8,'Color',[0.6 0 1],'LineWidth',1); %purple
-                end
-            else %diffusion MODE analysis
-                plot([xCoord2plot1(1,:); xCoord2plot1],[yCoord2plot1(1,:); yCoord2plot1],...
-                    'Color','b','LineWidth',1); %blue
-                plot([xCoord2plot2(1,:); xCoord2plot2],[yCoord2plot2(1,:); yCoord2plot2],...
-                    'Color','r','LineWidth',1); %red
+            plot(xCoord2plot5,yCoord2plot5,'Color','b','LineWidth',1); %[0 0 1]
+            plot(xCoord2plot6,yCoord2plot6,'Color','c','LineWidth',1); %[0 1 1]
+            plot(xCoord2plot7,yCoord2plot7,'Color','m','LineWidth',1); %[1 0 1]
+            if ~transDiffClass
+                plot(xCoord2plot1,yCoord2plot1,'Color',[1 0.7 0],'LineWidth',1); %orange
+                plot(xCoord2plot2,yCoord2plot2,'Color','r','LineWidth',1); %[1 0 0]
+                plot(xCoord2plot3,yCoord2plot3,'Color','g','LineWidth',1); %[0 1 0]
+                plot(xCoord2plot4,yCoord2plot4,'Color','y','LineWidth',1); %[1 1 0]
+                plot(xCoord2plot8,yCoord2plot8,'Color',[0.6 0 1],'LineWidth',1); %purple
             end
         end
         
@@ -1009,52 +958,73 @@ for iFrame = 1 : numFramesMovie
     %plot points (features + gaps + merges + splits)
     if ~onlyTracks
         
-        %blue stars: bad gaps
-        points2plot = find(pointStatus(:,iFrame)==-2);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',6);
-        
-        %cyan stars: good gaps
+% % % % % % % % % % % % % % % % % % % % % %         %blue stars: bad gaps
+% % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==-2);
+% % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'b*','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % %         %cyan stars: good gaps
         points2plot = find(pointStatus(:,iFrame)==-1);
         if isempty(diffAnalysisRes)
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'r*','MarkerSize',6);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'c*','MarkerSize',6);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'co','MarkerSize',6,'LineWidth',2);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'c*','MarkerSize',10,'LineWidth',2);
         else
             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'w*','MarkerSize',6);
         end
-        
+% % % % % % % % % % % % % % % % % % % % % %         
         %red circles: detected feature in the middle of track with status 0
-        points2plot = find(pointStatus(:,iFrame)==1);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'ro','MarkerSize',6);
+% % % % % % % % % % % % % % %          points2plot = find(pointStatus(:,iFrame)==1);
+% % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'ro','MarkerSize',8);
+        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %magenta circles: detected feature in the middle of track with status 1
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==2);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',10,'LineWidth',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %white circles: detected feature in the middle of track with status 2
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==3);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',5);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         
+% % % % % % % % % % % % % % % % % % % % % % %         %green circles: detected feature just after birth
+% % % % % % % % % % % % % % % % % % % % % % %         points2plot = find(pointStatus(:,iFrame)==4);
+% % % % % % % % % % % % % % % % % % % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',6);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',2);
+% % % % % % % % % % % % % % % % % % % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',15,'LineWidth',2);
         
-        %magenta circles: detected feature in the middle of track with status 1
-        points2plot = find(pointStatus(:,iFrame)==2);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'mo','MarkerSize',6);
+% % % % % %         %yellow circles: detected feature just before death
+% % % % % %         points2plot = find(pointStatus(:,iFrame)==5);
+% % % % % %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',6);
+% % % % % %         %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',2);
+        %         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',15,'LineWidth',2);
         
-        %white circles: detected feature in the middle of track with status 2
-        points2plot = find(pointStatus(:,iFrame)==3);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wo','MarkerSize',6);
-        
-        %green circles: detected feature just after birth
-        points2plot = find(pointStatus(:,iFrame)==4);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'go','MarkerSize',6);
-        
-        %yellow circles: detected feature just before death
-        points2plot = find(pointStatus(:,iFrame)==5);
-        plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yo','MarkerSize',6);
-        
-        %% SPLIT  %green diamonds: detected feature just before/after a split
+       %% SPLIT  %green diamonds: detected feature just before/after a split
         points2plot = find(pointStatus(:,iFrame)==6);
         if isempty(diffAnalysisRes)
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'rd','MarkerSize',6);
+% % % % % %                         plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',10);
+% % % % % %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',4);
+
+plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',6,'LineWidth',2);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'gd','MarkerSize',15,'LineWidth',2);
         else
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',6);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',10);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',15,'LineWidth',2);
         end
         
-        %% MERGE   %yellow diamonds: detected feature just before/after a merge
+     %% MERGE   %yellow diamonds: detected feature just before/after a merge
         points2plot = find(pointStatus(:,iFrame)==7);
         if isempty(diffAnalysisRes)
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'rd','MarkerSize',6);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',10);
+% % % % % % % %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',6);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',6,'LineWidth',2);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'yd','MarkerSize',15,'LineWidth',2);
         else
-            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',6);
+            plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',10);
+            %             plot(xCoordMatAll(points2plot,iFrame),yCoordMatAll(points2plot,iFrame),'wd','MarkerSize',15,'LineWidth',2);
         end
         
     end

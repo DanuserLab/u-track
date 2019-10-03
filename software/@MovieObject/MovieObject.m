@@ -180,7 +180,6 @@ classdef  MovieObject < hgsetget
                 backupPath = [backupDir sep fileName];
             end
         end
-
         function success = moveToBackup(obj,varargin)
             % Move old file to getBackupPath
             [backupPath, backupDir, fullPath] = obj.getBackupPath(varargin{:});
@@ -275,7 +274,7 @@ classdef  MovieObject < hgsetget
         end
 
         function [matchingProcs, matchingTags] = searchProcessTag(obj, queryStr, varargin)
-            [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,'queryField', 'tag', 'findPackage',false,'safeCall',true,'exactMatch',1,varargin{:});
+            [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,'queryField', 'tag', 'findPackage',false,'safeCall',true,varargin{:});
         end
 
         function [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,varargin)
@@ -706,7 +705,7 @@ classdef  MovieObject < hgsetget
         [ movieObject, process, processID ] = getOwnerAndProcess( movieObject, processClass, createProcessIfNoneExists, varargin );
 
         function openInNautilus(obj)
-            system(['nautilus "' obj.outputDirectory_ '" &'])
+            system(['nautilus ' obj.outputDirectory_])
         end
 
     end
@@ -758,12 +757,9 @@ classdef  MovieObject < hgsetget
             obj= data.(vars{isMovie});
         end
 
-        
-        
         function [matchingProcs, matchingTags] = searchProcessList(procList,tagList,queryField,queryStr,exactMatch,safeCall,selectIdx)
             matchingProcs = {};
             matchingTags = [];
-      
             for i = 1:numel(tagList)
                 if isempty(queryStr)
                     if isempty(tagList{i})
