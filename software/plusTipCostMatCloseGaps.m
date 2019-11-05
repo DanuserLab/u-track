@@ -139,6 +139,8 @@ if nargin ~= nargin('plusTipCostMatCloseGaps')
     return
 end
 
+disp(costMatParam)
+disp(gapCloseParam)
 doTest=0;
 doPlot=0;
 
@@ -163,9 +165,12 @@ end
 %% Gap closing
 
 % extract feature positions and velocity components
-px=trackedFeatInfo(:,1:8:end);
-py=trackedFeatInfo(:,2:8:end);
-pz=trackedFeatInfo(:,3:8:end);
+px=full(trackedFeatInfo(:,1:8:end));
+py=full(trackedFeatInfo(:,2:8:end));
+pz=full(trackedFeatInfo(:,3:8:end));
+px(px==0)=nan;
+py(py==0)=nan;
+pz(pz==0)=nan;
 
 vx=diff(px,1,2);
 vy=diff(py,1,2);
@@ -179,36 +184,48 @@ velInst(isnan(velInst))=[];
 % TRACK STARTS
 trackStartPxyzVxyz = zeros(nTracks,6);
 % x and y coordinates of the track's first point
-trackStartPxyzVxyz(:,1)=cell2mat(arrayfun(@(i) px(i,find(~isnan(px(i,:)),1,'first')),[1:nTracks]','UniformOutput',0));
-trackStartPxyzVxyz(:,2)=cell2mat(arrayfun(@(i) py(i,find(~isnan(py(i,:)),1,'first')),[1:nTracks]','UniformOutput',0));
-trackStartPxyzVxyz(:,3)=cell2mat(arrayfun(@(i) pz(i,find(~isnan(pz(i,:)),1,'first')),[1:nTracks]','UniformOutput',0));
-
+startIdx=arrayfun(@(i) find((px(i,:)>0),1,'first'),[1:nTracks]','UniformOutput',1);
+for tIdx=1:nTracks
+trackStartPxyzVxyz(tIdx,1)=px(tIdx,startIdx(tIdx)); 
+trackStartPxyzVxyz(tIdx,2)=py(tIdx,startIdx(tIdx)); 
+trackStartPxyzVxyz(tIdx,3)=pz(tIdx,startIdx(tIdx)); 
+end
 % average of first three velocity vectors (made from last 4 points
 % on track, if that many exist), x and y components
-trackStartPxyzVxyz(:,4)=cell2mat(arrayfun(@(i) mean(vx(i,find(~isnan(vx(i,:)),3,'first'))),[1:nTracks]','UniformOutput',0));
-trackStartPxyzVxyz(:,5)=cell2mat(arrayfun(@(i) mean(vy(i,find(~isnan(vy(i,:)),3,'first'))),[1:nTracks]','UniformOutput',0));
-trackStartPxyzVxyz(:,6)=cell2mat(arrayfun(@(i) mean(vz(i,find(~isnan(vz(i,:)),3,'first'))),[1:nTracks]','UniformOutput',0));
+
+for tIdx=1:nTracks % issue with arrayfun and sparse matrix makes forloop safer.
+trackStartPxyzVxyz(tIdx,4)=nanmean(vx(tIdx,find(~isnan(vx(tIdx,:)),3,'first')));
+trackStartPxyzVxyz(tIdx,5)=nanmean(vy(tIdx,find(~isnan(vx(tIdx,:)),3,'first')));
+trackStartPxyzVxyz(tIdx,6)=nanmean(vz(tIdx,find(~isnan(vx(tIdx,:)),3,'first')));
+end
 
 % TRACK ENDS
 trackEndPxyzVxyz = zeros(nTracks,6);
 % x and y coordinates of the track's last point
-trackEndPxyzVxyz(:,1)=cell2mat(arrayfun(@(i) px(i,find(~isnan(px(i,:)),1,'last')),[1:nTracks]','UniformOutput',0));
-trackEndPxyzVxyz(:,2)=cell2mat(arrayfun(@(i) py(i,find(~isnan(py(i,:)),1,'last')),[1:nTracks]','UniformOutput',0));
-trackEndPxyzVxyz(:,3)=cell2mat(arrayfun(@(i) pz(i,find(~isnan(pz(i,:)),1,'last')),[1:nTracks]','UniformOutput',0));
+endIdx=arrayfun(@(i) find((px(i,:)>0),1,'last'),[1:nTracks]','UniformOutput',1);
+
+for tIdx=1:nTracks
+trackEndPxyzVxyz(tIdx,1)=px(tIdx,endIdx(tIdx)); 
+trackEndPxyzVxyz(tIdx,2)=py(tIdx,endIdx(tIdx)); 
+trackEndPxyzVxyz(tIdx,3)=pz(tIdx,endIdx(tIdx)); 
+end
 
 % average of last three velocity vectors (made from last 4 points
 % on track, if that many exist), x and y components
-trackEndPxyzVxyz(:,4)=cell2mat(arrayfun(@(i) mean(vx(i,find(~isnan(vx(i,:)),3,'last'))),[1:nTracks]','UniformOutput',0));
-trackEndPxyzVxyz(:,5)=cell2mat(arrayfun(@(i) mean(vy(i,find(~isnan(vy(i,:)),3,'last'))),[1:nTracks]','UniformOutput',0));
-trackEndPxyzVxyz(:,6)=cell2mat(arrayfun(@(i) mean(vz(i,find(~isnan(vz(i,:)),3,'last'))),[1:nTracks]','UniformOutput',0));
+for tIdx=1:nTracks
+trackEndPxyzVxyz(tIdx,4)= nanmean(vx(tIdx,find(~isnan(vx(tIdx,:)),3,'last')));
+trackEndPxyzVxyz(tIdx,5)= nanmean(vy(tIdx,find(~isnan(vx(tIdx,:)),3,'last')));
+trackEndPxyzVxyz(tIdx,6)= nanmean(vz(tIdx,find(~isnan(vx(tIdx,:)),3,'last')));
+end 
 
 % get velocity components for each track from kalman filter (very similar to trackEndVxy)
+% PR: not similar at all.
 xyzVel=cell2mat(arrayfun(@(iTrack) kalmanFilterInfo(trackEndTime(iTrack))...
     .stateVec(trackedFeatIndx(iTrack,trackEndTime(iTrack)),probDim+1:2*probDim),...
-    [1:nTracks]','UniformOutput',0));
+    [1:nTracks]','UniformOutput',0)); 
 
 
-trackEndSpeed=sqrt(sum(xyzVel.^2,2));
+trackEndSpeed=sqrt(sum(trackEndPxyzVxyz(:,4:6).^2,2));
 vMax=prctile(trackEndSpeed,95);
 vMed=median(trackEndSpeed);
 
