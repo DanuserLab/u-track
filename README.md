@@ -4,6 +4,7 @@
 
 u-track is a multiple-particle tracking MATLAB software that is designed to (1) track dense particle fields, (2) close gaps in particle trajectories resulting from detection failure, and (3) capture particle merging and splitting events resulting from occlusion or genuine aggregation and dissociation events. Its core is based on formulating correspondence problems as linear assignment problems and searching for a globally optimal solution.
 
+- Version 2.3 runs much faster on large/long movies (Improvements made by Carmen Klein Herenbrink and Brian Devree. Reference coming soon.)
 - Version 2.2 adds parallel processing functionality for multi-movie datasets when using the GUI.
 - Version 2.1 enables the analysis of movies stored on an OMERO server
 - Version 2.0 includes two new tracking applications: microtubule plus-end tracking (previously distributed as plusTipTracker) and nuclei tracking
