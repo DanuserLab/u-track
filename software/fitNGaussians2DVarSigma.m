@@ -9,7 +9,7 @@ function [F,J] = fitNGaussians2DVarSigma(x0,image,index)
 %       index   : x,y-indices of pixels considered.
 %       psfSigma: Standard deviation of point spread function (in pixels).
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

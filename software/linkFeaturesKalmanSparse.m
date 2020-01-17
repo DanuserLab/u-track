@@ -1,12 +1,12 @@
 function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
     nnDistFeatures,prevCost,errFlag] = linkFeaturesKalmanSparse(movieInfo,...
-    costMatName,costMatParam,kalmanFunctions,probDim,filterInfoPrev,...
+    costMatFunc,costMatParam,kalmanFunctions,probDim,filterInfoPrev,...
     prevCost,verbose)
 %LINKFEATURESKALMAN links features between consecutive frames using LAP and possibly motion propagation using the Kalman filter
 %
 %SYNOPSIS [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 %    nnDistFeatures,prevCost,errFlag] = linkFeaturesKalmanSparse(movieInfo,...
-%    costMatName,costMatParam,kalmanFunctions,probDim,filterInfoPrev,...
+%    costMatFunc,costMatParam,kalmanFunctions,probDim,filterInfoPrev,...
 %    prevCost,verbose)
 %
 %INPUT  movieInfo      : Array of size equal to the number of frames
@@ -31,7 +31,8 @@ function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 %                            matrix. Optional. Calculated if not supplied.
 %             .nnDist      : Distance from each feature to its nearest
 %                            neighbor. Optional. Calculated if not supplied.
-%       costMatName    : Name of cost matrix function used for linking.
+%    %%%costMatName    : Name of cost matrix function used for linking. % Replaced!!!!!
+%       costMatFunc    : Function handle pointing to the cost matrix function used for linking. % Updated by Carmen Klein Herenbrink and Brian Devree
 %       costMatParam   : Parameters needed for cost matrix calculation. 
 %                        Structure with fields specified by particular
 %                        cost matrix used (costMatName).
@@ -87,7 +88,13 @@ function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 %
 %Khuloud Jaqaman, March 2007
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Updated in Jan 2020 to incorporate the changes made by Carmen Klein Herenbrink 
+% and Brian Devree from Copenhagen University to reduce the tracking time.
+% Changes made in this function are modified the code to pass the function named 
+% "costMatRandomDirectedSwitchingMotionLink" as a handle, instead of calling it through 
+% an eval statement.
+%
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -281,24 +288,6 @@ if selfAdaptive
     
 end
 
-%store the costs of previous links for features in first frame
-%if no previous costs have been input
-%in this case, store NaN since there are no previous links
-if isempty(prevCost)
-    prevCost = NaN(movieInfo(1).num,1);
-else
-    prevCost = max(prevCost(:))*ones(movieInfo(1).num,1);
-end
-prevCostStruct.all = prevCost;
-prevCostStruct.max = max(prevCost(:));
-prevCostStruct.allAux = [];
-
-%assign the lifetime of features in first frame
-featLifetime = ones(movieInfo(1).num,1);
-
-% % % %for paper - get number of potential link per feature
-% % % numPotLinksPerFeature = [];
-
 %get number of particles in whole movie and calculate a worst-case scenario
 %number of tracks
 %it can be that the final number of tracks is even larger than this worst
@@ -312,6 +301,25 @@ trackedFeatureIndxAux = zeros(numTracksWorstCase,numFrames);
 nnDistFeaturesAux = NaN(numTracksWorstCase,numFrames);
 prevCostAux = NaN(numTracksWorstCase,numFrames);
 rowEnd = numTracksWorstCase;
+
+%store the costs of previous links for features in first frame
+%if no previous costs have been input
+%in this case, store NaN since there are no previous links
+if isempty(prevCost)
+    prevCost = NaN(movieInfo(1).num,1);
+else
+    prevCost = max(prevCost(:))*ones(movieInfo(1).num,1);
+end
+prevCostStruct.all = prevCost;
+prevCostStruct.max = max(prevCost(:));
+% prevCostStruct.allAux = [];
+prevCostStruct.allAux = HandleObject(prevCostAux); % Updated by Carmen Klein Herenbrink and Brian Devree
+
+%assign the lifetime of features in first frame
+featLifetime = ones(movieInfo(1).num,1);
+
+% % % %for paper - get number of potential link per feature
+% % % numPotLinksPerFeature = [];
 
 %initialize progress display
 if verbose
@@ -331,10 +339,13 @@ for iFrame = 1 : numFrames-1
             
             %calculate cost matrix
             % -- USER DEFINED FUNCTION -- %
-            eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
-                ' = ' costMatName '(movieInfo,kalmanFilterInfo(iFrame),'...
-                'costMatParam,nnDistFeatures(1:numFeaturesFrame1,:),'...
-                'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+            % eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
+            %     ' = ' costMatName '(movieInfo,kalmanFilterInfo(iFrame),'...
+            %     'costMatParam,nnDistFeatures(1:numFeaturesFrame1,:),'...
+            %     'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+            [costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker] = costMatFunc(...
+                movieInfo,kalmanFilterInfo(iFrame),costMatParam,nnDistFeatures(1:numFeaturesFrame1,:),...
+                probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame); % Updated by Carmen Klein Herenbrink and Brian Devree
 
             % % %             %for paper - get number of potential links per feature
             % % %             numPotLinksPerFeature = [numPotLinksPerFeature; sum(...
@@ -598,7 +609,8 @@ for iFrame = 1 : numFrames-1
     %update structure of previous costs
     prevCostStruct.all = prevCost;
     prevCostStruct.max = max([prevCostStruct.max; prevCost(:,end)]);
-    prevCostStruct.allAux = prevCostAux;
+    % prevCostStruct.allAux = prevCostAux;
+    % prevCostStruct.allAux = HandleObject(prevCostAux); % Updated by Carmen Klein Herenbrink and Brian Devree
     
     %display progress
     if verbose

@@ -24,7 +24,7 @@ function [detectedFeatures,imageN3,errFlag] = centroidSubResFeatures2D(...
 %             .sigma     : Empty really, this is output just to maintain
 %                          consistency with detectSUbResFeatures2D_V2.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

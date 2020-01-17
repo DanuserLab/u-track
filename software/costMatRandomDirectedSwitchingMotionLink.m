@@ -91,7 +91,12 @@ function [costMat,propagationScheme,kalmanFilterInfoFrame2,nonlinkMarker,...
 %
 %Khuloud Jaqaman, March 2007
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Updated in Jan 2020 to incorporate the changes made by Carmen Klein Herenbrink 
+% and Brian Devree from Copenhagen University to reduce the tracking time.
+% Changes made in this function are to pass the "prevCostAux" matrix as a handle,
+% rather than to keep copying the entire matrix. 
+%
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -401,7 +406,8 @@ if currentFrame ~= 1 && any(diagnostics == currentFrame)
     %get linking distances
     % jonas, 10/09: fix for non-sparse tracker
     if isstruct(prevCost)
-        prevCostNoCol1 = [prevCost.all(:,2:end); prevCost.allAux(:,2:currentFrame)];
+        % prevCostNoCol1 = [prevCost.all(:,2:end); prevCost.allAux(:,2:currentFrame)];
+       prevCostNoCol1 = [prevCost.all(:,2:end); prevCost.allAux.Object(:,2:currentFrame)]; % Updated by Carmen Klein Herenbrink and Brian Devree
     else
         prevCostNoCol1 = prevCost(:,2:end);
     end

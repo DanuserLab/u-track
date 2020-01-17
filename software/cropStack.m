@@ -25,7 +25,7 @@ function [area, output_path]=cropStack(area,output_path,first_image_path,num_ima
 %            num_images_to_crop=0  : all images will be cropped.
 %            num_images_to_crop=n  : n images will be cropped. 
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

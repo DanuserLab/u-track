@@ -82,7 +82,7 @@ function plotTracks2D(trackedFeatureInfo, varargin)
 %
 %Khuloud Jaqaman, August 2006
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

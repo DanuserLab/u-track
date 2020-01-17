@@ -36,7 +36,7 @@
 % Usage for a single-channel image with mask and fixed sigma:
 % fitGaussians2D(img, x, y, A, sigma, c, 'xyAc', 'mask', mask);
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

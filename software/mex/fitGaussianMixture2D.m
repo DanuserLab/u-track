@@ -32,7 +32,7 @@
 %
 % Example: [prmVect prmStd C res J] = fitGaussianMixture2D(data, [0 0 max(data(:)) 0 0 max(data(:)) 1.5 min(data(:))], 'xyasc');
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

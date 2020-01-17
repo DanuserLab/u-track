@@ -2,7 +2,7 @@ classdef  ComputeMIPProcess < ImageProcessingProcess & NonSingularProcess
     % Concrete class for a computing Maximum Intensity Projections (MIP)
     % Andrew R. Jamieson Aug. 2017
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

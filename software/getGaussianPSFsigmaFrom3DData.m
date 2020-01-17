@@ -10,7 +10,7 @@
 % Output:
 %        sigma : standard deviation of the Gaussian PSF estimated from point sources in input data
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

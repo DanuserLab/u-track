@@ -21,7 +21,7 @@
 % For more information, see:
 % M. Jacob et al., IEEE Trans. Image Proc., 26(8) 1007-1019, 2004.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

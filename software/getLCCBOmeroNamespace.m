@@ -18,7 +18,7 @@ function namespace = getLCCBOmeroNamespace(varargin)
 %
 % Sebastien Besson, Nov 2012 (last modified Mar 2013)
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

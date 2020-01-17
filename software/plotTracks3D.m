@@ -72,7 +72,7 @@ function axH = plotTracks3D(trackedFeatureInfo,timeRange,colorTime,markerType,..
 %edits Philippe Roudot, October 2014
 % adapted for 3DUtrackPackage GUI simple figure display of output.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

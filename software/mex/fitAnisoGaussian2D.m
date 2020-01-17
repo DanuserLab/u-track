@@ -31,7 +31,7 @@
 %
 % Example: [prmVect prmStd C res J] = fitAnisoGaussian2D(data, [0 0 max(data(:)) 1.5 1.5 pi/6 min(data(:))], 'xyarstc');
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

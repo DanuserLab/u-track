@@ -19,7 +19,7 @@ function [ movieObject, process, processID ] = getOwnerAndProcess( process, proc
 %
 % See also MovieObject.getOwnerAndProcess, Process.getOwnerAndProcess
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

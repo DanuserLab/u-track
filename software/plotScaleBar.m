@@ -17,7 +17,7 @@
 % Note: there is a bug in '-depsc2' as of Matlab2010b, which misprints patches.
 %       When printing, use 'depsc' instead.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

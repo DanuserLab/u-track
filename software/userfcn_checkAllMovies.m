@@ -8,7 +8,7 @@ if get(handles.checkbox_all, 'Value')
             % Recalls the userData that may have been updated by the
             % checkAllMovies function
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
