@@ -92,7 +92,8 @@ function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 % and Brian Devree from Copenhagen University to reduce the tracking time.
 % Changes made in this function are modified the code to pass the function named 
 % "costMatRandomDirectedSwitchingMotionLink" as a handle, instead of calling it through 
-% an eval statement.
+% an eval statement. This is note is to force enconding change (otherwise not detected
+% by git)
 %
 % Copyright (C) 2020, Danuser Lab - UTSouthwestern 
 %
