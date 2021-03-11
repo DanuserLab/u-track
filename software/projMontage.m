@@ -39,7 +39,7 @@ function three=projMontage(XY,XZ,YZ,ZUp,ZRight)
   % threeBottom = [XZ,        0*ones(size(XZ,1),stripeSize,size(XY,3)),                       YZ];
   % three =       [threeTop;  ones(stripeSize,size(XY,2)+size(YZ,2)+stripeSize,size(XY,3));   threeBottom];
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

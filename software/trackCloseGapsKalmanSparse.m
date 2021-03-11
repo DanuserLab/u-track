@@ -120,7 +120,7 @@ function [tracksFinal,kalmanInfoLink,errFlag] = trackCloseGapsKalmanSparse(...
 % to instantly remove the information, rather than store it and then manually
 % delete it.
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

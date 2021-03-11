@@ -2,7 +2,7 @@ classdef PointSourceDetectionProcess3D < DetectionProcess
 %PointSourceDetectionProcess3D is a concrete class of a point source
 %detection process for 3d
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

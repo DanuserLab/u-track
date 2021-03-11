@@ -2,7 +2,7 @@ classdef NucleiDetectionProcess < DetectionProcess
     % A concrete class of the detection process
     % Sebastien Besson Oct 2011
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

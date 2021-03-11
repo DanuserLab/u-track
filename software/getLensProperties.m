@@ -19,7 +19,7 @@ function varargout = getLensProperties(id,varargin)
 %    - a variable number of properties depending on the size of the second
 %    optional input.
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

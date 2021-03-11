@@ -95,7 +95,7 @@ function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 % an eval statement. This is note is to force enconding change (otherwise not detected
 % by git)
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

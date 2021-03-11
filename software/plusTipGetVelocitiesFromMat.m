@@ -33,7 +33,7 @@ function [trackedFeatureInfo,trackedFeatureInfoInterp,trackInfo,trackVelocities,
 %         timeRange                : frame range over which post-processing
 %                                    ran - needed for post-processing fn
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

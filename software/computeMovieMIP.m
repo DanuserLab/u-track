@@ -3,7 +3,7 @@ function computeMovieMIP(movieDataOrProcess, varargin)
 % Andrew R. Jamieson, Aug. 2017
 % Also See printMIP                                    
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

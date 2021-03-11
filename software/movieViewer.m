@@ -39,7 +39,7 @@ function mainFig = movieViewer(MO,varargin)
 %
 % Sebastien Besson, July 2012 (last modified Nov 2012)
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -2,7 +2,7 @@ classdef  MovieObject < hgsetget
     % Abstract interface defining the analyis tools for movie objects
     % (movies, movie lists...)
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -180,6 +180,7 @@ classdef  MovieObject < hgsetget
                 backupPath = [backupDir sep fileName];
             end
         end
+
         function success = moveToBackup(obj,varargin)
             % Move old file to getBackupPath
             [backupPath, backupDir, fullPath] = obj.getBackupPath(varargin{:});
@@ -274,7 +275,7 @@ classdef  MovieObject < hgsetget
         end
 
         function [matchingProcs, matchingTags] = searchProcessTag(obj, queryStr, varargin)
-            [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,'queryField', 'tag', 'findPackage',false,'safeCall',true,varargin{:});
+            [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,'queryField', 'tag', 'findPackage',false,'safeCall',true,'exactMatch',1,varargin{:});
         end
 
         function [matchingProcs, matchingTags] = findProcessTag(obj, queryStr,varargin)
@@ -598,9 +599,21 @@ classdef  MovieObject < hgsetget
                 oldPath = regexprep(obj.getPath(),endingFilesepToken,'');
                 newPath = regexprep(ip.Results.path,endingFilesepToken,'');
                 
+                % Since Jun 2020, The GPFS upgrade made some changes to the 
+                % GPFS /work and /archive filesets. The top of the hierarchical 
+                % file system is now /endosome. /work and /archive are symbolic 
+                % links to /endosome/work and /endosome/archive.
+                % Below is to make sure the absolute newPath ('/endosome/XXX')
+                % is treated the same as the oldPath.
+                % Qiongjing (Jenny) Zou, Jun 2020
+                isDiffPath = ~strcmp(oldPath, newPath);
+                if isDiffPath && isunix && (strcmp(oldPath(1:6), '/work/') || strcmp(oldPath(1:9), '/archive/'))
+                    isDiffPath = ~strcmp(['/endosome' oldPath], newPath);
+                end
+                    
                 % If different path
                 hasDisplay = feature('ShowFigureWindows');
-                if ~strcmp(oldPath, newPath)
+                if isDiffPath
                     full = ip.Results.full;  % flag for full relocation
                     if askUser && hasDisplay
                         if isa(obj,'MovieData')
@@ -609,8 +622,11 @@ classdef  MovieObject < hgsetget
                         elseif isa(obj,'MovieList')
                             type='movie list';
                             components='movies';
+                        elseif isa(obj,'ImageData')
+                            type='image';
+                            components='imFolders'; 
                         else
-                            error('Non supported movie object');
+                            error('Non supported movie object or image data object');
                         end
                         relocateMsg=sprintf(['The %s and its analysis will be relocated from \n%s to \n%s.\n'...
                             'Should I relocate its %s as well?'],type,oldPath,newPath,components);
@@ -705,7 +721,7 @@ classdef  MovieObject < hgsetget
         [ movieObject, process, processID ] = getOwnerAndProcess( movieObject, processClass, createProcessIfNoneExists, varargin );
 
         function openInNautilus(obj)
-            system(['nautilus ' obj.outputDirectory_])
+            system(['nautilus "' obj.outputDirectory_ '" &'])
         end
 
     end
@@ -714,6 +730,7 @@ classdef  MovieObject < hgsetget
 
         function [obj, filepath] = loadMatFile(classname, filepath)
             % Load a movie object saves as a MAT file on disk
+            % Works with ImageData object as well.
             
             % Retrieve the absolute path
             [status, f] = fileattrib(filepath);
@@ -757,9 +774,12 @@ classdef  MovieObject < hgsetget
             obj= data.(vars{isMovie});
         end
 
+        
+        
         function [matchingProcs, matchingTags] = searchProcessList(procList,tagList,queryField,queryStr,exactMatch,safeCall,selectIdx)
             matchingProcs = {};
             matchingTags = [];
+      
             for i = 1:numel(tagList)
                 if isempty(queryStr)
                     if isempty(tagList{i})

@@ -11,7 +11,7 @@ function originalFile = updateOriginalFile(...
 %        originalFile = updateOriginalFile(session, originalFile, filePath)
 %        originalFile = updateOriginalFile(session, fa.getFile(), filePath)
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

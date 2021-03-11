@@ -9,7 +9,7 @@ function ML = buildByRegexp(filter,outputDirectory)
 % OUTPUT
 % ML - A MovieList containing MovieData objects that matches filter
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

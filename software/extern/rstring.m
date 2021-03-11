@@ -1,7 +1,7 @@
 function rv=rstring(iv)
 % omero.rtypes.rstring static method workaround
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

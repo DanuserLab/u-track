@@ -2,7 +2,7 @@ classdef MaskProcess < Process
     % Abstract interface for all mask-related processes (segmentation,
     % morphological operations)
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

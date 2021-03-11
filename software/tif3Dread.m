@@ -25,7 +25,7 @@ function image = tif3Dread(filename)
 % 1/2010
 %
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

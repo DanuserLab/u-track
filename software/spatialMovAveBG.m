@@ -3,7 +3,7 @@ function [bgMean,bgStd] = spatialMovAveBG(imageLast5,imageSizeX,imageSizeY)
 %the function in its current form assigns blocks of 11x11 pixels the
 %same background values, for the sake of speed
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -33,7 +33,7 @@ function [movieInfo, dPix]=detectNuclei(I, radius, varargin)
 % For more information, see:
 % M. Rosa Ng, A. Besser, G. Danuser, and J. S. Brugge, J Cell Biol 2012 199:545-563
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

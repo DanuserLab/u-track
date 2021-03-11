@@ -54,7 +54,7 @@ function overlayFeaturesMovie(movieInfo,startend,saveMovie,movieName,...
 %
 %Khuloud Jaqaman, August 2007
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

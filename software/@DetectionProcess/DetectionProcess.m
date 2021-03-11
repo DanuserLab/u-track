@@ -2,7 +2,7 @@ classdef DetectionProcess < ImageAnalysisProcess
     % An abstract class for all detection processes with an output
     % structure compatible with the tracker
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

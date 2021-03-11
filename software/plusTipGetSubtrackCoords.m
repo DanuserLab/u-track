@@ -16,7 +16,7 @@ function [xMat,yMat]=plusTipGetSubtrackCoords(projData,idx,useMerged)
 % Kathryn Applegate, 2010
 % Sebastien Besson, last modified Feb 2012
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

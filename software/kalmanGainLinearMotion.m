@@ -70,7 +70,7 @@ function [kalmanFilterInfoOut,errFlag] = kalmanGainLinearMotion(trackedFeatureIn
 %
 %Khuloud Jaqaman, March 2007
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

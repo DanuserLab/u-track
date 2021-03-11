@@ -12,7 +12,7 @@ function patch=stamp3d(data,patchSize,center,symmetric)
 %
 % OUTPUT patch : 3D patch 
 %
-% Copyright (C) 2020, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
