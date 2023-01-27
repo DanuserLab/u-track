@@ -14,8 +14,8 @@ For more information, please see [Jaqaman et al., Nature Methods 5, pp. 695-702 
 
 A containerized u-track software is available to [download](https://hub.docker.com/repository/docker/jennyzouutsw/utrack2.3) and can be run in Docker following [this instructions](https://github.com/JennyZouUTSW/auto-docker/blob/develop/utrack2018b/README.md).
 
-[Danuser Lab Website](https://www.utsouthwestern.edu/labs/danuser/)
+[Danuser Lab Website](https://www.danuserlab-utsw.org/)
 
 [Jaqaman Lab Website](https://www.utsouthwestern.edu/labs/jaqaman/)
 
-[Software Links](https://www.utsouthwestern.edu/labs/danuser/software/)
+[Software Links](https://github.com/DanuserLab/)
