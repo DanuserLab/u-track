@@ -1,7 +1,7 @@
 classdef TrackingPackage < Package
     % An abstract class for a geeneric Tracking Package
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -43,7 +43,7 @@ classdef TrackingPackage < Package
     methods (Static)
         
         function name = getName()
-            name = 'U-Track';
+            name = 'u-track';
         end 
         function m = getDependencyMatrix(i,j)   
             m = [0 0 0;  %1 DetectionProcess

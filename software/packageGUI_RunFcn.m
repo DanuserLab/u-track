@@ -4,7 +4,7 @@ function packageGUI_RunFcn(hObject,eventdata,handles)
 % This is a common section of code called by pushbutton_run_Callback
 % when user click the "Run" button on package control panels.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -40,7 +40,13 @@ userData.statusM(userData.id).Checked = userfcn_saveCheckbox(handles);
 set(handles.figure1, 'UserData', userData)
 
 % Determine the movie(s) to be processed
-if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
+if ~isempty(userData.MD) && isempty(userData.ImD) 
+    field='MD'; 
+elseif isempty(userData.MD) && ~isempty(userData.ImD) 
+    field = 'ImD'; 
+else
+    field = 'ML'; 
+end
 if isa(userData.crtPackage, 'XcorrFluctuationPackage')
     field = 'ML';
 end

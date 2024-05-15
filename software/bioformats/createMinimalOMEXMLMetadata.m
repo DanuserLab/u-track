@@ -16,7 +16,7 @@ function metadata = createMinimalOMEXMLMetadata(I, varargin)
 %
 % See also: BFSAVE
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -72,12 +72,7 @@ metadata = OMEXMLService.createOMEXMLMetadata();
 metadata.createRoot();
 metadata.setImageID('Image:0', 0);
 metadata.setPixelsID('Pixels:0', 0);
-if is_octave()
-    java_true = java_get('java.lang.Boolean', 'TRUE');
-else
-    java_true = java.lang.Boolean.TRUE;
-end
-metadata.setPixelsBigEndian(java_true, 0);
+metadata.setPixelsBigEndian(javaObject('java.lang.Boolean', 'TRUE'), 0);
 
 % Set dimension order
 dimensionOrderEnumHandler = javaObject('ome.xml.model.enums.handlers.DimensionOrderEnumHandler');

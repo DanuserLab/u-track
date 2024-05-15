@@ -42,7 +42,7 @@ function detectMovieComets(movieData,varargin)
 %       Optional. Default is 1
 %
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -177,8 +177,9 @@ for iChan= p.ChannelIndex
 
         % Perform maximum filter and mask out significant pixels
         thFilterDiff = ordfilt2(filterDiff,9,ones(3,3));
-        threshold = thresholdOtsu(thFilterDiff)/3 + ...
-            thresholdRosin(thFilterDiff)*2/3;
+% $$$         threshold = thresholdOtsu(thFilterDiff)/3 + ...
+% $$$             thresholdRosin(thFilterDiff)*2/3;
+        threshold = thresholdOtsu(thFilterDiff);
         stdList(i)=nanstd(filterDiff(thFilterDiff<threshold));
 %         stdList(i)=nanstd(filterDiff(:));
 
@@ -190,6 +191,15 @@ for iChan= p.ChannelIndex
     
     meanStd = arrayfun(@(x) nanmean(stdList(max(1,x-1):min(nFrames,x+1))),1:nFrames);
     % meanStd = smooth(stdList,3); % Discrepancy for endpoint
+    figure();
+    histogram(meanStd,100);
+    s=load(fullfile(filteredImagesDirectory, ['filterDiff_' num2str(1) '.mat']));
+    filterDiff=s.filterDiff;    
+
+    figure();
+    histogram(filterDiff(:),100);    
+    disp(['threshold ' num2str(p.multFactorThresh*meanStd(1))]);
+    disp(['multFactorThresh ' num2str(p.multFactorThresh)]);
     
     % loop thru frames and detect
     logMsg='Detecting comets';

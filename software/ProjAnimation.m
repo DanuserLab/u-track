@@ -2,7 +2,7 @@ classdef ProjAnimation < Animation
 %% This class provide a view from an orthogonal projection rawProjectDynROIProcess.
 %% It reuses ProjectDynROIProcess as a backEnd, since this class already the necessary containers. 
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

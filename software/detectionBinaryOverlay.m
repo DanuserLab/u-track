@@ -13,7 +13,7 @@ ip.parse(varargin{:});
 p=ip.Results;
 %%
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -39,7 +39,6 @@ XRatio=size(img,2)/(XLimit(2)-XLimit(1));
 YRatio=size(img,1)/(YLimit(2)-YLimit(1));
 detColors=colormap;
 
-
 if(~isempty(detections))
     for fIdx=1:length(detections)
         d=detections(fIdx);
@@ -60,7 +59,7 @@ if(~isempty(detections))
             X=X*XRatio;
             Y=Y*YRatio;
             if(iscell(p.radius))
-                radius=ceil(p.radius{fIdx}*XRatio);
+                radius=ceil(p.radius{min(end,fIdx)}*XRatio);
             else
                 radius=ceil(p.radius*XRatio);
             end
@@ -125,7 +124,7 @@ if(~isempty(detections))
 %                 xlim(XLimit);
 %                 ylim(YLimit);
                 A=radius.^2;
-                scatter(X,Y,A,colormap(cIndex,:))
+                scatter(X,Y,A,colormap(cIndex,:));
 %                 uniqueCIdx=unique(cIndex);
 %                 for ucIdx=1:length(uniqueCIdx)
 %                     cIdx=uniqueCIdx(ucIdx)

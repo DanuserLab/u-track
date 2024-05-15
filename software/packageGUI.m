@@ -20,7 +20,7 @@ function varargout = packageGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -76,7 +76,7 @@ varargout{1} = handles.output;
 userData = get(handles.figure1, 'UserData');
 if (isfield(userData,'startMovieSelectorGUI') && userData.startMovieSelectorGUI)
     movieSelectorGUI('packageName',userData.packageName,'MD',userData.MD,...
-        'ML', userData.ML , 'cluster', uTrackParCluster);
+        'ML', userData.ML , 'ImD', userData.ImD, 'cluster', uTrackParCluster);
     delete(handles.figure1)
 end
 
@@ -89,22 +89,37 @@ if isfield(userData, 'overviewFig') && ishandle(userData.overviewFig)
     delete(userData.overviewFig)
 end
 
-userData.overviewFig = movieDataGUI(userData.MD(userData.id));
+if ~isempty(userData.MD) && isempty(userData.ImD)
+    userData.overviewFig = movieDataGUI(userData.MD(userData.id));
+elseif isempty(userData.MD) && ~isempty(userData.ImD)
+    userData.overviewFig = imageDataGUI(userData.ImD(userData.id));
+end
 set(handles.figure1, 'UserData', userData);
 
 % --- Executes on Save button press or File>Save
 function save_Callback(~, ~, handles)
 userData = get(handles.figure1, 'UserData');
+if ~isempty(userData.MD) && isempty(userData.ImD)
 set(handles.text_saveStatus, 'Visible', 'on')
 arrayfun(@save,userData.MD);
 pause(.3)
 set(handles.text_saveStatus, 'Visible', 'off')
+elseif isempty(userData.MD) && ~isempty(userData.ImD)
+    set(handles.text_ImDsaveStatus, 'Visible', 'on')
+    arrayfun(@save,userData.ImD);
+    pause(.3)
+    set(handles.text_ImDsaveStatus, 'Visible', 'off')
+end
 
 
 function switchMovie_Callback(hObject, ~, handles)
 
 userData = get(handles.figure1, 'UserData');
+if ~isempty(userData.MD) && isempty(userData.ImD)
 nMovies = length(userData.MD);
+elseif isempty(userData.MD) && ~isempty(userData.ImD)
+    nMovies = length(userData.ImD);
+end
 
 switch get(hObject,'Tag')
     case 'pushbutton_left'
@@ -142,8 +157,10 @@ end
 % --- Executes when user attempts to close figure1.
 function figure1_CloseRequestFcn(hObject, eventdata, handles)
 userData = get(handles.figure1,'Userdata');
-if isfield(userData, 'MD')
+if isfield(userData, 'MD') && isempty(userData.ImD)
     MD = userData.MD;
+elseif isfield(userData, 'ImD') && isempty(userData.MD) && ~isempty(userData.ImD)
+    ImD = userData.ImD;
 else
     delete(handles.figure1);
     return;
@@ -152,7 +169,13 @@ end
 saveRes = questdlg('Do you want to save the current progress?', ...
     'Package Control Panel');
 
-if strcmpi(saveRes,'yes'), arrayfun(@save,userData.MD); end
+if strcmpi(saveRes,'yes')
+    if isfield(userData, 'MD') && isempty(userData.ImD)
+        arrayfun(@save,userData.MD);
+    elseif isfield(userData, 'ImD') && isempty(userData.MD) && ~isempty(userData.ImD)
+        arrayfun(@save,userData.ImD);
+    end
+end
 if strcmpi(saveRes,'cancel'), return; end
 delete(handles.figure1);
 
@@ -176,8 +199,15 @@ isFig = ~cellfun(@isempty,regexp(userDataFields,'Fig$'));
 userDataFigs = userDataFields(isFig);
 for i=1:numel(userDataFigs)
      figHandles = userData.(userDataFigs{i});
+     if ~iscell(figHandles)
      validFigHandles = figHandles(ishandle(figHandles)&figHandles ~= 0);
      delete(validFigHandles);
+     else 
+        % this is for new APP DESIGNER UI:
+         validFigHandles = cellfun(@(x) x((ishandle(x) | isa(x, 'matlab.apps.AppBase')) & x ~= 0), figHandles, 'UniformOutput', false);
+         validFigHandles = validFigHandles(~cellfun(@isempty, validFigHandles));
+         cellfun(@delete, validFigHandles);
+     end
 end
 
 % msgboxGUI used for error reports
@@ -216,12 +246,12 @@ end
 
 % --------------------------------------------------------------------
 function menu_file_open_Callback(~, ~, handles)
-% Call back function of 'New' in menu bar
+% Call back function of 'Open' in menu bar
 userData = get(handles.figure1,'Userdata');
 % if ~isempty(userData.MD), field = 'MD'; else field = 'ML'; end
 % arrayfun(@(x) x.save,userData.(field));
 movieSelectorGUI('packageName',userData.packageName,...
-    'MD', userData.MD, 'ML', userData.ML);
+    'MD', userData.MD, 'ML', userData.ML, 'ImD', userData.ImD);
 delete(handles.figure1)
 
 % --------------------------------------------------------------------
@@ -256,15 +286,15 @@ procID = str2double(prop(length('pushbutton_set_')+1:end));
 crtProc=userData.crtPackage.getProcessClassNames{procID};
 crtProcGUI =eval([crtProc '.GUI']);
 try 
-    userData.setFig(procID) = crtProcGUI('mainFig',handles.figure1,procID);
+    userData.setFig{procID} = crtProcGUI('mainFig',handles.figure1,procID); % Save setFig in cell array {}, since new APP DESIGNER UI has diff types
 catch ME
-    if exist('deactivateCLIBackup','var') == 1 && deactivateCLIBackup
+    if exist('deactivateCLIBackup','var') == 1 && isempty(deactivateCLIBackup)
         rethrow(ME)
     else
         msgbox(ME.message)
         warning('Loading Custom GUI failed! -- Running CLI parameter config as BACKUP - follow instructions');
         uiwait(msgbox({'Loading Custom GUI failed!','Running CLI parameter config as BACKUP','Please follow instructions'}));
-        userData.setFig(procID) = cliGUI('mainFig',handles.figure1,procID);
+        userData.setFig{procID} = cliGUI('mainFig',handles.figure1,procID);
     end
 end
 
@@ -325,7 +355,7 @@ if ~isequal(userData.packageName, 'XcorrFluctuationPackage')
     elseif ismac
         system(sprintf('open %s',regexptranslate('escape',outputDir)));
     elseif isunix
-        status = system(sprintf('xdg-open "%s"',regexptranslate('escape',outputDir)));
+        status = system(sprintf('gio open "%s"',regexptranslate('escape',outputDir)));
         % If a non-zero integer is returned, then display a message box
         if(status)
             msgbox(sprintf('Results can be found under %s',regexptranslate('escape',outputDir)));

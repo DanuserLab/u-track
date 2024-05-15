@@ -1,7 +1,7 @@
 function status = generateReport(movieException,userData,varargin)
 % Generate report from movie exception cell array
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -40,9 +40,12 @@ basicLogMsg = cell(size(movieException));
 extendedLogMsg = cell(size(movieException));
 for i = errorMovies(:)'
     % Format movie log message
-    if ~isempty(userData.MD), 
+    if ~isempty(userData.MD) && isempty(userData.ImD)
         field = 'MD';
         type = 'Movie'; 
+    elseif isempty(userData.MD) && ~isempty(userData.ImD)
+        field = 'ImD';
+        type = 'ImageData';
     else
         field = 'ML';
         type = 'Movie list'; 

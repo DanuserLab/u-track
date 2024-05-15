@@ -18,7 +18,7 @@ ip.parse(varargin{:});
 
   %% Print tracks on the projections
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -69,8 +69,9 @@ ip.parse(varargin{:});
             positionsLabel{dIdx}=positionsLabel{dIdx}(keepIndx{dIdx});
           end
           colorIndx{dIdx}=colorIndx{dIdx}(keepIndx{dIdx});
-          if(numel(radius{dIdx})>1)
-                radius{dIdx}=radius{dIdx}(keepIndx{dIdx});
+          rdIdx=min(numel(radius),dIdx);
+          if(numel(radius{rdIdx})>1)
+                radius{rdIdx}=radius{rdIdx}(keepIndx{rdIdx});
           end
       end
       detections=detections.copy().selectIdx(keepIndx);
@@ -92,7 +93,8 @@ ip.parse(varargin{:});
           trdetections(tIdx).xCoord=detections(tIdx).zCoord;
           trdetections(tIdx).yCoord=detections(tIdx).yCoord;
       end
-    
+    ZLimit=[minZBorder maxZBorder];
+    imageSize=size(ZYProj);
     tracksZY=detectionBinaryOverlay(ZYProj,[minZBorder maxZBorder],[minYBorder maxYBorder],trdetections,colorIndx,myColormap,varargin{:}, ...
                                     'radius',radius,'positionsLabel',positionsLabel);
   else

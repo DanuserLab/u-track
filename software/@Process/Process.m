@@ -3,7 +3,7 @@ classdef Process < hgsetget
     % will inherit.
     %
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -81,6 +81,7 @@ classdef Process < hgsetget
                 % set default tag label
                 numproc = numel(owner.getProcessIndex(class(obj), Inf, 0));
                 obj.tag_ = [class(obj) '_' num2str(numproc+1)];
+                obj.outFilePathsCache_=[];
             end
         end
     end
@@ -276,27 +277,27 @@ classdef Process < hgsetget
         end
        
        function outputCell=loadFileOrCache(obj)
-           if(isempty((obj.outFilePathsCache_)))
+           % if(isempty(obj.outFilePathsCache_))
                 outputCell=cell(1,numel(obj.outFilePaths_));
                 for i=1:numel(obj.outFilePaths_)
                     if(~isempty(obj.outFilePaths_{i}))
                         outputCell{i}=load(obj.outFilePaths_{i});
                     end
                 end
-            else
-                outputCell=obj.outFilePathsCache_;
-            end
+            % else
+            %     outputCell=obj.outFilePathsCache_;
+            % end
        end
 
-       function cacheProcess=createCacheProcess(obj)
-            cacheProcess=ExternalProcess(obj.getOwner(),['cached_' obj.name_]);
-            cacheProcess.setOutFilePaths({[obj.getOwner().outputDirectory_ filesep 'dynROIs' filesep 'initDynROIs.mat']});
-            cacheProcess.setProcessTag(['cached_' obj.tag_]);
-            eoutput=cellfun(@isempty,obj.outFilePaths_);
-            tmp=cell(size(obj.outFilePaths_));
-            tmp(~eoutput)=cellfun(@(f) load(f),obj.outFilePaths_(~eoutput),'unif',0);
-            cacheProcess.outFilePathsCache_=tmp;
-       end
+       % function cacheProcess=createCacheProcess(obj)
+       %      cacheProcess=ExternalProcess(obj.getOwner(),['cached_' obj.name_]);
+       %      cacheProcess.setOutFilePaths({[obj.getOwner().outputDirectory_ filesep 'dynROIs' filesep 'initDynROIs.mat']});
+       %      cacheProcess.setProcessTag(['cached_' obj.tag_]);
+       %      eoutput=cellfun(@isempty,obj.outFilePaths_);
+       %      tmp=cell(size(obj.outFilePaths_));
+       %      tmp(~eoutput)=cellfun(@(f) load(f),obj.outFilePaths_(~eoutput),'unif',0);
+       %      cacheProcess.outFilePathsCache_=tmp;
+       % end
 
 
        function emptyCache(obj)
@@ -382,12 +383,32 @@ classdef Process < hgsetget
             for i=1:numel(relocateFields)
                 obj.(relocateFields{i}) = relocatePath(obj.(relocateFields{i}),...
                     oldRootDir,newRootDir);
+                
+                % special relocate for BuildDynROIProcess in NewUTrack3DPackage and its dynROI_rawImages MD
+                if isa(obj, 'BuildDynROIProcess') && isequal(relocateFields{i}, 'outFilePaths_')
+                    load(obj.outFilePaths_{3, 1});
+                    movieDataDynROICell{1} = relocatePath(movieDataDynROICell{1}, oldRootDir,newRootDir);
+                    save(obj.outFilePaths_{3, 1},'movieDataDynROICell');
+                    clear movieDataDynROICell
+                    
+                    % relocate for MD built based on DynROI raw images.
+                    s = cached.load(obj.outFilePaths_{3, 1}, '-useCache', true);
+                    load(s.movieDataDynROICell{1});
+                    MD.relocate(oldRootDir,newRootDir, true);
+                    MD.save
+                    clear s MD
+                end    
             end
         end
         
         function hfigure = resultDisplay(obj)
+            if isa(obj.getOwner(), 'ImageData')
+                hfigure = imageDataViewer(obj.getOwner(), ...
+                    find(cellfun(@(x)isequal(x,obj),obj.getOwner().processes_)));
+            else
             hfigure = movieViewer(obj.getOwner(), ...
                 find(cellfun(@(x)isequal(x,obj),obj.getOwner().processes_)));
+            end
         end
         
         function h=draw(obj,iChan,varargin)

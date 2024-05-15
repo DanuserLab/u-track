@@ -1,7 +1,7 @@
 function idx = getMergeIdx(obj,msM)
 %getMergeIdx get the linear index of 
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

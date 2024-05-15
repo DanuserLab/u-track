@@ -20,7 +20,7 @@ function varargout = abstractProcessGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -100,6 +100,7 @@ if isempty(userData.crtProc)
 else
 %     value = find(strcmp(userData.crtProc.getName,subProcNames));
     value = find(cellfun(@isempty, strfind(subProcNames, userData.crtProc.getName))==0,1);
+    if isempty(value); value = numel(subProcNames)+1; end
 end
 
 existSubProc = @(proc) any(cellfun(@(x) isa(x,proc),userData.MD.processes_));

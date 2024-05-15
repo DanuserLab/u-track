@@ -4,7 +4,7 @@ classdef CachedProjectDynROIProcess < ProjectDynROIProcess
 %% It is designed to be usable for partial rendering "Raw MIP" or "fused channel" in various format,
 %% hence the number of rendering channel and frames is taking into account.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

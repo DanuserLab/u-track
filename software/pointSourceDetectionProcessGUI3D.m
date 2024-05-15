@@ -20,7 +20,7 @@ function varargout = pointSourceDetectionProcessGUI3D(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -41,7 +41,7 @@ function varargout = pointSourceDetectionProcessGUI3D(varargin)
 
 % Edit the above text to modify the response to help anisoGaussianDetectionProcessGUI
 
-% Last Modified by GUIDE v2.5 22-May-2018 16:28:33
+% Last Modified by GUIDE v2.5 09-Jan-2020 14:00:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -170,6 +170,52 @@ popupmenu_SegProcessIndex_Callback(hObject, eventdata, handles)
 %Update channel parameter selection dropdown
 popupmenu_CurrentChannel_Callback(hObject, eventdata, handles)
 
+% Add Scales parameter to the GUI
+set(handles.edit_scales, 'String',num2str(funParams.scales))
+
+
+if isequal(userData.procConstr, @PointSourceDetectionProcess3DDynROI)
+  % Set up available Build Dyn ROI channels
+  set(handles.listbox_availableDynROIChannels,'String',userData.MD.getChannelPaths(), ...
+      'UserData',1:numel(userData.MD.channels_));
+
+  DynROIChannelIndex = funParams.buildDynROIProcessChannel;
+
+  if ~isempty(DynROIChannelIndex)
+      DynROIChannelString = userData.MD.getChannelPaths(DynROIChannelIndex);
+  else
+      DynROIChannelString = {};
+  end
+  set(handles.listbox_selectedDynROIChannels,'String',DynROIChannelString,...
+      'UserData',DynROIChannelIndex);
+
+
+  %Setup Build Dyn ROI process list box
+  DynROIProc =  cellfun(@(x) isa(x,'BuildDynROIProcess'),userData.MD.processes_);
+  DynROIProcID=find(DynROIProc);
+  DynROIProcNames = cellfun(@(x) x.getName(),userData.MD.processes_(DynROIProc),'Unif',false);
+  DynROIProcString = vertcat('Choose later',DynROIProcNames(:));
+  DynROIProcData=horzcat({[]},num2cell(DynROIProcID));
+  DynROIProcValue = find(cellfun(@(x) isequal(x,funParams.processBuildDynROI),userData.MD.processes_(DynROIProc)));
+  if isempty(DynROIProcValue) && isempty(DynROIProcID)
+      DynROIProcValue = 1; 
+  elseif isempty(DynROIProcValue) && ~isempty(DynROIProcID) % make first available DynROIProc selected&set on the GUI, even funParams.processBuildDynROI = [].
+      DynROIProcValue = 2;
+  else
+      DynROIProcValue = DynROIProcValue+1; 
+  end
+  set(handles.popupmenu_BuildDynROIProcessIndex,'String',DynROIProcString,...
+      'UserData',DynROIProcData,'Value',DynROIProcValue);
+
+  % Update channels listboxes depending on the selected process
+  popupmenu_BuildDynROIProcessIndex_Callback(hObject, eventdata, handles)
+else
+  uipanel_DynROIProc_posi = get(handles.uipanel_DynROIProc, 'Position');
+  widthDiff = uipanel_DynROIProc_posi(3);
+  delete(handles.uipanel_DynROIProc);
+  set(handles.figure1, 'Position', (get(handles.figure1,'position') - [0 0 widthDiff 0]));
+end
+
 
 % Update GUI user data
 set(handles.figure1, 'UserData', userData);
@@ -228,6 +274,13 @@ if isempty(get(handles.listbox_selectedChannels, 'String'))
     return;
 end
 
+if any(isnan(str2num(get(handles.edit_scales, 'String')))) ...
+    || any(str2num(get(handles.edit_scales, 'String')) < 0) ...
+    || isempty(get(handles.edit_scales, 'String'))
+  errordlg('Please provide a valid input for ''Scales''.','Setting Error','modal');
+  return;
+end
+
 %Save the currently set per-channel parameters
 pushbutton_saveChannelParams_Callback(hObject, eventdata, handles)
 
@@ -261,6 +314,25 @@ funParams.MaskProcessIndex = props{1}{props{2}};
 
 funParams.UseIntersection = get(handles.edit_UseIntersection,'Value') > 0;
 
+% Retrieve GUI-defined parameters for Build Dyn ROI process:
+userData = get(handles.figure1,'UserData');
+
+if isequal(userData.procConstr, @PointSourceDetectionProcess3DDynROI)
+  %Get selected DynROI channels
+  DynROIChannelProps = get(handles.listbox_selectedDynROIChannels, {'Userdata','String'});
+  funParams.buildDynROIProcessChannel = DynROIChannelProps{1};
+  % Retrieve Build Dyn ROI process
+  props=get(handles.popupmenu_BuildDynROIProcessIndex,{'UserData','Value'});
+  DynROIProcessIndex = props{1}{props{2}};
+  if ~isempty(DynROIProcessIndex)
+    funParams.processBuildDynROI = userData.MD.processes_{DynROIProcessIndex};
+  else 
+    funParams.processBuildDynROI = [];
+  end
+end
+
+% Add Scales parameter to the GUI
+funParams.scales = str2num(get(handles.edit_scales, 'String'));
 
 % Add 64-bit warning
 is64bit = ~isempty(regexp(computer ,'64$', 'once'));
@@ -674,6 +746,9 @@ end
 selType = get(handles.edit_algorithmType, 'Value'); 
 algoType = PointSourceDetectionProcess3D.getValidAlgorithmTypes{selType};
 
+
+set(handles.edit_isoCoord, 'enable','on');
+
 if any(ismember(algoType,{'watershedApplegateAuto', ...
                       'watershedApplegate',...
                       'bandPassWatershed',...
@@ -701,6 +776,19 @@ elseif any(ismember(algoType,{'pointSourceLM',...
     
     children = get(handles.uipanel_water,'Children');
     set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off')
+
+elseif any(ismember(algoType,{'multiscaleDetectionDebug'}))
+
+    children = get(handles.uipanel_pointSource,'Children');
+    set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
+    children = get(handles.uipanel_water,'Children');
+    set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
+
+    set(handles.text_alpha, 'enable','on');
+    set(handles.edit_alpha, 'enable','on');
+    set(handles.text_scales, 'enable','on');
+    set(handles.edit_scales, 'enable','on');
+    set(handles.edit_isoCoord, 'enable','off');
                           
 end
 
@@ -752,6 +840,9 @@ for i =1 : numel(funParams.PerChannelParams)
         selType = get(handles.(['edit_' paramName]), 'Value'); 
         parVal = PointSourceDetectionProcess3D.getValidAlgorithmTypes{selType};
         funParams.(paramName)(iChan) = {parVal};
+        if isequal(parVal, 'multiscaleDetectionDebug')
+            funParams.version = 'useMaxResponse';
+        end
     
     elseif strcmp(paramName,'InputImageProcessIndex')
 %         userData = get(handles.figure1,'UserData');
@@ -922,7 +1013,9 @@ function edit_algorithmType_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from edit_algorithmType
     selType = get(handles.edit_algorithmType, 'Value'); 
     algoType = PointSourceDetectionProcess3D.getValidAlgorithmTypes{selType};
+ 
     
+set(handles.edit_isoCoord, 'enable','on');
 
 if any(ismember(algoType,{'watershedApplegateAuto', ...
                       'watershedApplegate',...
@@ -949,7 +1042,20 @@ elseif any(ismember(algoType,{'pointSourceLM',...
     set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','on');
     children = get(handles.uipanel_water,'Children');
     set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
-                          
+  
+elseif any(ismember(algoType,{'multiscaleDetectionDebug'}))
+
+    children = get(handles.uipanel_pointSource,'Children');
+    set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
+    children = get(handles.uipanel_water,'Children');
+    set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
+
+    set(handles.text_alpha, 'enable','on');
+    set(handles.edit_alpha, 'enable','on');
+    set(handles.text_scales, 'enable','on');
+    set(handles.edit_scales, 'enable','on');
+    set(handles.edit_isoCoord, 'enable','off');
+
 end
 
         
@@ -1132,3 +1238,402 @@ function edit_isoCoord_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of edit_isoCoord
+
+
+% --- Executes on selection change in listbox_availableDynROIChannels.
+function listbox_availableDynROIChannels_Callback(hObject, eventdata, handles)
+% hObject    handle to listbox_availableDynROIChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns listbox_availableDynROIChannels contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox_availableDynROIChannels
+
+
+% --- Executes during object creation, after setting all properties.
+function listbox_availableDynROIChannels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listbox_availableDynROIChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in checkbox_DynROI_all.
+function checkbox_DynROI_all_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_DynROI_all (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_DynROI_all
+contents1 = get(handles.listbox_availableDynROIChannels, 'String');
+
+chanIndex1 = get(handles.listbox_availableDynROIChannels, 'Userdata');
+chanIndex2 = get(handles.listbox_selectedDynROIChannels, 'Userdata');
+
+% Return if listbox1 is empty
+if isempty(contents1)
+    return;
+end
+
+switch get(hObject,'Value')
+    case 1
+        set(handles.listbox_selectedDynROIChannels, 'String', contents1);
+        chanIndex2 = chanIndex1;
+    case 0
+        set(handles.listbox_selectedDynROIChannels, 'String', {}, 'Value',1);
+        chanIndex2 = [ ];
+end
+set(handles.listbox_selectedDynROIChannels, 'UserData', chanIndex2);
+
+% --- Executes on button press in pushbutton_DynROI_select.
+function pushbutton_DynROI_select_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_DynROI_select (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+contents1 = get(handles.listbox_availableDynROIChannels, 'String');
+contents2 = get(handles.listbox_selectedDynROIChannels, 'String');
+id = get(handles.listbox_availableDynROIChannels, 'Value');
+
+% If channel has already been added, return;
+chanIndex1 = get(handles.listbox_availableDynROIChannels, 'Userdata');
+chanIndex2 = get(handles.listbox_selectedDynROIChannels, 'Userdata');
+
+for i = id
+
+        contents2{end+1} = contents1{i};
+        
+        chanIndex2 = cat(2, chanIndex2, chanIndex1(i));
+
+end
+
+set(handles.listbox_selectedDynROIChannels, 'String', contents2, 'Userdata', chanIndex2);
+
+
+% --- Executes on button press in pushbutton_DynROI_delete.
+function pushbutton_DynROI_delete_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_DynROI_delete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Call back function of 'delete' button
+contents = get(handles.listbox_selectedDynROIChannels,'String');
+id = get(handles.listbox_selectedDynROIChannels,'Value');
+
+% Return if list is empty
+if isempty(contents) || isempty(id)
+    return;
+end
+
+% Delete selected item
+contents(id) = [ ];
+
+% Delete userdata
+chanIndex2 = get(handles.listbox_selectedDynROIChannels, 'Userdata');
+chanIndex2(id) = [ ];
+set(handles.listbox_selectedDynROIChannels, 'Userdata', chanIndex2);
+
+% Point 'Value' to the second last item in the list once the 
+% last item has been deleted
+if (id >length(contents) && id>1)
+    set(handles.listbox_selectedDynROIChannels,'Value',length(contents));
+end
+% Refresh listbox
+set(handles.listbox_selectedDynROIChannels,'String',contents);
+
+
+% --- Executes on selection change in listbox_selectedDynROIChannels.
+function listbox_selectedDynROIChannels_Callback(hObject, eventdata, handles)
+% hObject    handle to listbox_selectedDynROIChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns listbox_selectedDynROIChannels contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox_selectedDynROIChannels
+
+
+% --- Executes during object creation, after setting all properties.
+function listbox_selectedDynROIChannels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listbox_selectedDynROIChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton_DynROI_up.
+function pushbutton_DynROI_up_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_DynROI_up (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% call back of 'Up' button
+
+id = get(handles.listbox_selectedDynROIChannels,'Value');
+contents = get(handles.listbox_selectedDynROIChannels,'String');
+
+
+% Return if list is empty
+if isempty(contents) || isempty(id) || id == 1
+    return;
+end
+
+temp = contents{id};
+contents{id} = contents{id-1};
+contents{id-1} = temp;
+
+chanIndex = get(handles.listbox_selectedDynROIChannels, 'Userdata');
+temp = chanIndex(id);
+chanIndex(id) = chanIndex(id-1);
+chanIndex(id-1) = temp;
+
+set(handles.listbox_selectedDynROIChannels, 'String', contents, 'Userdata', chanIndex);
+set(handles.listbox_selectedDynROIChannels, 'value', id-1);
+
+
+% --- Executes on button press in pushbutton_DynROI_down.
+function pushbutton_DynROI_down_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_DynROI_down (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+id = get(handles.listbox_selectedDynROIChannels,'Value');
+contents = get(handles.listbox_selectedDynROIChannels,'String');
+
+% Return if list is empty
+if isempty(contents) || isempty(id) || id == length(contents)
+    return;
+end
+
+temp = contents{id};
+contents{id} = contents{id+1};
+contents{id+1} = temp;
+
+chanIndex = get(handles.listbox_selectedDynROIChannels, 'Userdata');
+temp = chanIndex(id);
+chanIndex(id) = chanIndex(id+1);
+chanIndex(id+1) = temp;
+
+set(handles.listbox_selectedDynROIChannels, 'string', contents, 'Userdata',chanIndex);
+set(handles.listbox_selectedDynROIChannels, 'value', id+1);
+
+
+% --- Executes on selection change in popupmenu_BuildDynROIProcessIndex.
+function popupmenu_BuildDynROIProcessIndex_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu_BuildDynROIProcessIndex (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_BuildDynROIProcessIndex contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu_BuildDynROIProcessIndex
+
+% Retrieve selected process ID
+props= get(handles.popupmenu_BuildDynROIProcessIndex,{'UserData','Value'});
+procID = props{1}{props{2}};
+
+% Read process and check available channels
+userData = get(handles.figure1, 'UserData');
+if(isempty(userData)), userData = struct(); end;
+
+if isempty(procID)
+    allChannelIndex=1:numel(userData.MD.channels_);
+else
+    allChannelIndex = find(userData.MD.processes_{procID}.checkChannelOutput);
+end
+
+% Set up available channels listbox
+if ~isempty(allChannelIndex)
+    if isempty(procID)
+        channelString = userData.MD.getChannelPaths(allChannelIndex);
+    else
+        channelString = userData.MD.processes_{procID}.outFilePaths_(1,allChannelIndex);
+    end
+else
+    channelString = {};
+end
+set(handles.listbox_availableDynROIChannels,'String',channelString,'UserData',allChannelIndex);
+
+% Set up selected channels listbox
+channelIndex = get(handles.listbox_selectedDynROIChannels, 'UserData');
+channelIndex(~ismember(channelIndex,allChannelIndex)) = [];%So that indices may repeat, and handles empty better than intersect
+if ~isempty(channelIndex)
+    if isempty(procID)
+        channelString = userData.MD.getChannelPaths(channelIndex);
+    else
+        channelString = userData.MD.processes_{procID}.outFilePaths_(1,channelIndex);
+    end
+else
+    channelString = {};
+    channelIndex = [];%Because the intersect command returns a 0x1 instead of 0x0 which causes concatenation errors
+end
+set(handles.listbox_selectedDynROIChannels,'String',channelString,'UserData',channelIndex);
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu_BuildDynROIProcessIndex_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu_BuildDynROIProcessIndex (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+%% other functions added automatically by GUIDE on 10/25/2019:
+
+% --- Executes on button press in checkbox_applytoall.
+function checkbox_applytoall_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_applytoall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_applytoall
+
+
+% --- Executes on selection change in listbox_availableChannels.
+function listbox_availableChannels_Callback(hObject, eventdata, handles)
+% hObject    handle to listbox_availableChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns listbox_availableChannels contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox_availableChannels
+
+
+% --- Executes during object creation, after setting all properties.
+function listbox_availableChannels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listbox_availableChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in checkbox_all.
+function checkbox_all_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_all (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_all
+
+
+% --- Executes on button press in pushbutton_select.
+function pushbutton_select_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_select (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton_delete.
+function pushbutton_delete_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_delete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on selection change in listbox_selectedChannels.
+function listbox_selectedChannels_Callback(hObject, eventdata, handles)
+% hObject    handle to listbox_selectedChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns listbox_selectedChannels contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox_selectedChannels
+
+
+% --- Executes during object creation, after setting all properties.
+function listbox_selectedChannels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listbox_selectedChannels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_alpha_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_alpha (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_alpha as text
+%        str2double(get(hObject,'String')) returns contents of edit_alpha as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_alpha_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_alpha (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_filterSigmaZ_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_filterSigmaZ (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_filterSigmaZ as text
+%        str2double(get(hObject,'String')) returns contents of edit_filterSigmaZ as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_filterSigmaZ_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_filterSigmaZ (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_scales_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_scales (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_scales as text
+%        str2double(get(hObject,'String')) returns contents of edit_scales as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_scales_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_scales (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

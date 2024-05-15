@@ -1,7 +1,8 @@
-function [trackabilityCost,sampledPredictions,sampleLabel,votingLabel,trackabilityCostFull]=simulatedPredictionVoting(predStat,costFunc,costMatParam,dynCostMatParam,varargin)
+function [trackabilityCost,sampledPredictions,sampleLabel,votingLabel,trackabilityCostFull,predExpectation]=simulatedPredictionVoting( ...
+    predStat,costFunc,costMatParam,dynCostMatParam,varargin)
     %% Using normally distributed sampling to test the answer of the LAP for any given cost matrix.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -38,41 +39,66 @@ function [trackabilityCost,sampledPredictions,sampleLabel,votingLabel,trackabili
     movieInfo=dynCostMatParam.movieInfo;
     featLifetime=dynCostMatParam.featLifetime;
     trackedFeatureIndx=dynCostMatParam.trackedFeatureIndx;
-    eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
-        ' = ' costFunc '(movieInfo,predStat,'...
-        'costMatParam,nnDistFeatures,'...
-        'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+    % eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
+    %     ' = ' costFunc '(movieInfo,predStat,'...
+    %     'costMatParam,nnDistFeatures,'...
+    %     'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+    [costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker] = costFunc(...
+                movieInfo,predStat,costMatParam,nnDistFeatures,...
+                probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame); % Updated by Carmen Klein Herenbrink and Brian Devree
+
     if any(costMat(:)~=nonlinkMarker) %if there are potential links
          %link features based on cost matrix, allowing for birth and death
         [origLink12,origLink21] = lap(costMat,nonlinkMarker,0);
     end
-    
+
+
     nPred=size(predStat.noiseVar,3);
     samples=cell(1,p.sampleNb);
     voteCell=cell(1,p.sampleNb);
+
+    predPos=predStat.stateVec(:,1:probDim);
+    noiseVar=predStat.noiseVar(1:probDim,1:probDim,:);
+    noiseStdV=sqrt([squeeze(noiseVar(1,1,:)) squeeze(noiseVar(2,2,:)) squeeze(noiseVar(3,3,:))]);
+
+    % PostPrePos is only used for display purposes, hence we will only keep the first propagation scheme.
+    postPredPos=kalmanFilterInfoTmp.stateVec(:,1:3,1);
     for sIdx=1:p.sampleNb
-        %%
-        predPos=predStat.stateVec(:,1:probDim);
-        R = mvnrnd(predPos,sqrt(predStat.noiseVar(1:probDim,1:probDim,:)));
+        %% We are re sampling data pre-propagation to take advantage of u-track modularity
+        %% It is less rigorous but enable trackability estimation on all type of cost matrices. 
+        %R = mvnrnd(predPos,sqrt(noiseVar));
+        R = predPos + (noiseStdV).*randn(size(predPos));
+
         samPredStat=predStat;
         samPredStat.stateVec(:,1:probDim)=R;
-        %%
-        eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
-            ' = ' costFunc '(movieInfo,samPredStat,'...
-            'costMatParam,nnDistFeatures,'...
-            'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+        % %%
+        % eval(['[costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker]'...
+        %     ' = ' costFunc '(movieInfo,samPredStat,'...
+        %     'costMatParam,nnDistFeatures,'...
+        %     'probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame);'])
+
+        [costMat,propagationScheme,kalmanFilterInfoTmp,nonlinkMarker] = costFunc(...
+                movieInfo,samPredStat,costMatParam,nnDistFeatures,...
+                probDim,prevCostStruct,featLifetime,trackedFeatureIndx,iFrame); % Updated by Carmen Klein Herenbrink and Brian Devree
+
+        % Sample post propagation reflected in cost mat
+        samplePostProg=kalmanFilterInfoTmp.stateVec(:,:,1);
+        samplePostProg=samplePostProg(:,1:probDim);
+        link12=[];
         if any(costMat(:)~=nonlinkMarker) %if there are potential links
              %link features based on cost matrix, allowing for birth and death
-            [link12,link21] = lap(costMat,nonlinkMarker,0);
+            [link12,~] = lap(costMat,nonlinkMarker,0);
         end
         
         %% Voting: 1 : same vote, 2: other particle 3: new Death
-        samples{sIdx}=R;
         vote=double(link12==origLink12);
         vote(vote==0)=2;
         vote((vote==2)&(link12>nPred))=3;
         vote((nPred+1):end)=[]; % suppress the vote by qdummy variable
+
+        %% storage
         voteCell{sIdx}=vote;
+        samples{sIdx}=samplePostProg;
     end
     allSample=vertcat(samples{:});
     sampledPredictions=Detections();
@@ -82,6 +108,9 @@ function [trackabilityCost,sampledPredictions,sampleLabel,votingLabel,trackabili
     allVotes=horzcat(voteCell{:});
     trackabilityCost=sum(allVotes==1,2)/size(allVotes,2);
     trackabilityCostFull=[sum(allVotes==1,2) sum(allVotes==2,2) sum(allVotes==3,2)];
+    predExpectation=Detections();
+    predExpectation.setPosMatrix(postPredPos,ones(size(postPredPos)));
+
 end
 
 

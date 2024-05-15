@@ -14,7 +14,7 @@ function [asymParam,asymFlag] = asymDeterm2D3D(positions,alpha)
 %
 %Khuloud Jaqaman, December 2007
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

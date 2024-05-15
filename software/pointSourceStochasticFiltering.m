@@ -1,7 +1,7 @@
 function [mask, dummy, imgLoG,imgLoGScaled,testMap] = pointSourceStochasticFiltering(vol, sigma, varargin)
 % P. Roudot 2016. Credit to F. Aguet 2013
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -33,6 +33,7 @@ ip.addParamValue('Mask', [], @(x) isnumeric(x) || islogical(x));
 ip.addParamValue('FitMixtures', false, @islogical);
 ip.addParamValue('MaxMixtures', 5, @(x) numel(x)==1 && x>0 && round(x)==x);
 ip.addParamValue('RemoveRedundant', true, @islogical);
+ip.addParamValue('verbosity',1);
 ip.addParamValue('RedundancyRadius', 0.25, @isscalar);
 ip.addParamValue('RefineMaskLoG', false, @islogical);
 ip.addParamValue('RefineMaskValid', false, @islogical);
@@ -68,7 +69,9 @@ if(isempty(localMaxWindowSize))
     localMaxWindowSize=max(3,roundOddOrEven(ceil(2*sigma([1 1 2])),'odd'));
 end
 
+if(ip.Results.verbosity>1)
 tic;
+end
 %-------------------------------------------------------------------------------------------
 % Convolutions
 %-------------------------------------------------------------------------------------------
@@ -92,9 +95,13 @@ gkernel=gx*gx'*reshape(gz,[1 1 numel(gz)]);
 imgLoGScaled=imgLoG;%./nansum((gkernel(:).^2).^0.5;
 
 clear fgx2 fgy2 fgz2;
+if(ip.Results.verbosity>1)
 disp('Convolutions');toc;
+end
 
+if(ip.Results.verbosity>1)
 tic;
+end
 % Gaussian kernel (spatial)
 [x,y,z] = meshgrid(-ws(1):ws(1),-ws(1):ws(1),-ws(2):ws(2));
 g = exp(-(x.^2+y.^2)/(2*sigma(1)^2)) .* exp(-z.^2/(2*sigma(2)^2));
@@ -108,9 +115,13 @@ c_est = (fu - A_est*gsum)/n;
 
 J = [g(:) ones(n,1)]; % g_dA g_dc
 C = inv(J'*J);
+if(ip.Results.verbosity>1)
 disp('Pixelic fit');toc;
+end
 
+if(ip.Results.verbosity>1)
 tic;
+end
 f_c = fu2 - 2*c_est.*fu + n*c_est.^2; % f-c
 RSS = A_est.^2*g2sum - 2*A_est.*(fg - c_est*gsum) + f_c;
 RSS=RSS-(A_est*gsum+n*c_est-fu)/n;
@@ -142,7 +153,9 @@ testMap=A_est+c_est;
 mask([1 2 end-1 end],:,:) = 0;
 mask(:,[1 2 end-1 end],:) = 0;
 mask(:,:,[1 2 end-1 end]) = 0;
+if(ip.Results.verbosity>1)
 disp('Stochastic thresholding');toc;
+end
 
 % all local max
 % allMax = locmax3d(imgLoG, localMaxWindowSize, 'ClearBorder', false);

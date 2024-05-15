@@ -20,7 +20,7 @@ function [outputFileList]=getFileStackNames(firstfilename)
 % Aaron Ponti, October 4th, 2002
 % modified by Achim Besser, February 2nd, 2010
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

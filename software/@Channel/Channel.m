@@ -1,7 +1,7 @@
 classdef Channel < hgsetget & matlab.mixin.Copyable
     %  Class definition of channel class
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -324,6 +324,9 @@ classdef Channel < hgsetget & matlab.mixin.Copyable
             elseif ~isempty(obj.hcsPlatestack_),
                 r = HCSReader(obj);
             else
+                % See MovieData.initReader
+                % obj.owner_ is empty and so is obj.hcsPlatestack_
+                % How do we figure if we need TiffSeriesReader3D or not?
                 r = TiffSeriesReader({obj.channelPath_});
             end
         end

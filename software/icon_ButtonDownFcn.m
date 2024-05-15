@@ -3,7 +3,7 @@ function icon_ButtonDownFcn(hObject, eventdata)
 % in all GUIs.
 %
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -26,20 +26,38 @@ handles = guidata(hObject);
 ud = get(hObject, 'UserData');
 
 if ~isempty(ud) && isfield(ud, 'class')
-%% Open original txt help file. 
-% Help files are specified by variable "helpFile"
-    
-    helpFile=[ud.class '.pdf'];
-    if exist(helpFile, 'file')
-        if ispc || ismac
-            open(helpFile)
-        elseif isunix
-            helpFilePath = which(helpFile);
-            system(['evince ' helpFilePath ' &']);
+
+    %% Open url GitHub wiki page, if ud.class belongs to Biosensors package.
+    className = isBiosensorsPackRelatedHelpButtons(ud.class);
+
+    if ~isempty(className)
+
+        % Check if there is internet connection.
+        try
+            response = webread('https://www.google.com/');
+        catch ME
+            warndlg('No internet connection available. Please connect to the internet to see the documentation.', 'modal');
         end
-    else
-        warndlg(['Cannot find Help file:', helpFile], 'modal');
-        return
+
+        url = getBiosensorsPackHelpPgUrl(className);
+        web(url)
+
+    else 
+    %% Open original txt help file. 
+    % Help files are specified by variable "helpFile"
+        
+        helpFile=[ud.class '.pdf'];
+        if exist(helpFile, 'file')
+            if ispc || ismac
+                open(helpFile)
+            elseif isunix
+                helpFilePath = which(helpFile);
+                system(['evince ' helpFilePath ' &']);
+            end
+        else
+            warndlg(['Cannot find Help file:', helpFile], 'modal');
+            return
+        end
     end
 
 else
@@ -99,4 +117,90 @@ else
     end
 
     set(handles.figure1, 'UserData', userData);
+end
+
+end
+
+function className = isBiosensorsPackRelatedHelpButtons(inputClass)
+% This local fcn is to check if the ud.class is one of 18 classes used in BiosensorsPackage,
+% including BiosensorsPackage class, 12 processes, 3 2D-processes in SegmentationProcess, and 2 classes under Tool menu.
+% className will return one of 18 class's name, or empty.
+
+% % Below is how to get allRelatedClass by code, 
+% % BUT if do so, all files in BiosensorsPackage will be included in other package on GitHub during CI build and deploy stages.
+% allRelatedClass = horzcat(BiosensorsPackage.getProcessClassNames, SegmentationProcess.getConcreteClasses');
+% helpToolsClass=cell(1,2);
+% [helpToolsClass{:}] = deal(func2str(BiosensorsPackage.getTools(1).funHandle), func2str(BiosensorsPackage.getTools(2).funHandle));
+% allRelatedClass=horzcat('BiosensorsPackage', allRelatedClass(1:end-1), helpToolsClass);
+
+allRelatedClass = {
+    'BiosensorsPackage', ...
+    'DarkCurrentCorrectionProcess', ...
+    'ShadeCorrectionProcess', ...
+    'CropShadeCorrectROIProcess', ...
+    'SegmentationProcess', ...
+    'BackgroundMasksProcess', ...
+    'MaskRefinementProcess', ...
+    'BackgroundSubtractionProcess', ...
+    'TransformationProcess', ...
+    'BleedthroughCorrectionProcess', ...
+    'RatioProcess', ...
+    'PhotobleachCorrectionProcess', ...
+    'OutputRatioProcess', ...
+    'ThresholdProcess', ...
+    'MultiScaleAutoSegmentationProcess', ...
+    'ExternalSegmentationProcess', ...
+    'calculateBleedthroughGUI', ...
+    'transformCreationGUI'};
+
+outputIdx = ismember(allRelatedClass, inputClass);
+if any(outputIdx)
+    className = allRelatedClass{outputIdx};
+else
+    className = [];
+end
+end
+
+function url = getBiosensorsPackHelpPgUrl(className)
+% This local fcn is to get url of the wiki page of Biosensors package.
+switch(className)
+    case 'BiosensorsPackage'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/u-probe-Package-Description';
+    case 'DarkCurrentCorrectionProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Dark-Current-Correction-Process-Description';
+    case 'ShadeCorrectionProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Shade-Correction-Process-Description';
+    case 'CropShadeCorrectROIProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Cropping-Shade-Corrected-Movie-Process-Description';
+    case 'SegmentationProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Segmentation-Process-Description';
+    case 'BackgroundMasksProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Background-Mask-Process-Description';
+    case 'MaskRefinementProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Mask-Refinement-Process-Description';
+    case 'BackgroundSubtractionProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Background-Subtraction-Process-Description';
+    case 'TransformationProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Transformation-Process-Description';
+    case 'BleedthroughCorrectionProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Bleedthrough-Crosstalk-Correction-Process-Description';
+    case 'RatioProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Ratioing-Process-Description';
+    case 'PhotobleachCorrectionProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Photobleach-Correction-Process-Description';
+    case 'OutputRatioProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Ratio-Output-Process-Description';
+    case 'ThresholdProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Thresholding-Process-Description';
+    case 'MultiScaleAutoSegmentationProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/MSA-(multi-scale-automatic)-Segmentation-Process-Description';
+    case 'ExternalSegmentationProcess'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/External-Segmentation-Process-Description';
+    case 'calculateBleedthroughGUI'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Bleedthrough-Coefficient-Calculation-Description';
+    case 'transformCreationGUI'
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Alignment-Registration-Transform-Creation-Description';
+    otherwise
+        url = 'https://github.com/DanuserLab/u-probe/wiki';
+end
 end

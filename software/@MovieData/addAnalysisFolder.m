@@ -6,7 +6,7 @@ function MD=addAnalysisFolder(MD,currentAnalysisRoot,newAnalysisRoot,varargin)
 % Optionnaly the channel can be relocated to using the options
 % oldRawDataRoot and newRawDataRoot.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -38,10 +38,7 @@ function MD=addAnalysisFolder(MD,currentAnalysisRoot,newAnalysisRoot,varargin)
 
     oldRawDataRoot=ip.Results.oldRawDataRoot;
     newRawDataRoot=ip.Results.newRawDataRoot;
-    MD.outputDirectory_
-    currentAnalysisRoot
-    newAnalysisRoot
-    MDAnalysisPath=relocatePath(MD.outputDirectory_, currentAnalysisRoot,  newAnalysisRoot)
+    MDAnalysisPath=relocatePath(MD.outputDirectory_, currentAnalysisRoot,  newAnalysisRoot);
     mkdirRobust(MDAnalysisPath);
     if(p.copyOutput)
         copyfile(MD.outputDirectory_,MDAnalysisPath);

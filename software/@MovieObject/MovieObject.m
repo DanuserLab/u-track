@@ -2,7 +2,7 @@ classdef  MovieObject < hgsetget
     % Abstract interface defining the analyis tools for movie objects
     % (movies, movie lists...)
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -200,6 +200,11 @@ classdef  MovieObject < hgsetget
                        exist(fullPath,'file') ~= 2)
                     % MATLAB:MOVIEFILE:OSError is an undocumented error if
                     % the file does not exist
+                    % do nothing
+                    elseif(strcmp(err.identifier,'MATLAB:MOVEFILE:FileNotFound') && ...
+                       exist(fullPath,'file') ~= 2)
+                    % Mathworks changes the err.identifier for movefile in
+                    % 2022b and after, from MATLAB:MOVIEFILE:OSError to MATLAB:MOVEFILE:FileNotFound
                     % do nothing
                     elseif(~strcmp(err.identifier,'MATLAB:MOVEFILE:FileDoesNotExist'))
                         warning('MovieObject:saveBackup:Failure', ...

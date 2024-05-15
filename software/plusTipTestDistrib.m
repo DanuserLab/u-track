@@ -27,7 +27,7 @@ function [discrimMat]=plusTipTestDistrib(groupData,saveDir,stringency,testID1,te
 % Maria Bagonis, April 2011
 % Sebastien Besson, Sep 2011
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

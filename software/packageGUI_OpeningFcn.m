@@ -4,7 +4,7 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 % packageGUI_OpeningFcn(packageName,MD)   MD: MovieData object
 %
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -28,7 +28,8 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 % User Data:
 %
 %       userData.MD - array of MovieData object
-%       userData.MD - array of MovieList object
+%       userData.ML - array of MovieList object
+%       userData.ImD - array of ImageData object	% added June 2020
 %       userData.package - array of package (same length with userData.MD)
 %       userData.crtPackage - the package of current MD
 %       userData.id - the id of current MD on board
@@ -71,6 +72,9 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 % large number of processes and the height of the packageGUI is over the screensize.
 % Updated by Qiongjing (Jenny) Zou, Jun 2019
 
+% Add ImageData compatibility
+% Updated by Qiongjing (Jenny) Zou, Jun 2020
+
 % Input check
 ip = inputParser;
 ip.addRequired('hObject',@ishandle);
@@ -82,6 +86,7 @@ ip.addParameter('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
 % ip.addParameter('menu_parallel',true, @(x) islogical(x) || x==1 || x==0);
 % ip.addParameter('menu_debug',true, @(x) islogical(x) || x==1 || x==0);
 ip.addParameter('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
+ip.addParameter('ImD',[],@(x) isempty(x) || isa(x,'ImageData'));
 ip.addParameter('packageConstr','',@(x) isa(x,'function_handle'));
 ip.addParameter('packageIndx',{},@iscell);
 ip.addParameter('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
@@ -98,6 +103,7 @@ if isempty(userData), userData = struct(); end
 userData.packageName = packageName;
 userData.MD = ip.Results.MD;
 userData.ML = ip.Results.ML;
+userData.ImD = ip.Results.ImD;
 if(~isempty(ip.Results.cluster))
     uTrackParCluster(ip.Results.cluster);
 end
@@ -114,8 +120,10 @@ end
 if isa(ip.Results.MO,'MovieList')
     userData.ML = ip.Results.MO;
     set(handles.pushbutton_status,'Enable','off');
+elseif isa(ip.Results.MO,'ImageData')
+    userData.ImD=ip.Results.MO;
 else
-    userData.MD=ip.Results.MO;
+    userData.MD=ip.Results.MO; 
 end
 
 % Call package GUI error
@@ -277,7 +285,7 @@ procTag=templateTag;
 figure1Pos = get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40];
 screenSize = get(0,'ScreenSize');
 
-if figure1Pos(4) <= screenSize(4)-175
+if figure1Pos(4) <= screenSize(4)-70
     
     set(handles.figure1,'Position',...
         get(handles.figure1,'Position')+(nProc-1)*[0 0 0 40])
@@ -293,15 +301,15 @@ if figure1Pos(4) <= screenSize(4)-175
 else
     default_fig1Pos = get(handles.figure1,'Position');
     set(handles.figure1,'Position',...
-        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-175])
+        [default_fig1Pos(1) default_fig1Pos(2) default_fig1Pos(3) screenSize(4)-100])
 
     default_panelMoviePos = get(handles.panel_movie,'Position');
     set(handles.panel_movie,'Position',...
-        [default_panelMoviePos(1) screenSize(4)-175-default_panelMoviePos(4) ...
+        [default_panelMoviePos(1) screenSize(4)-100-default_panelMoviePos(4) ...
         default_panelMoviePos(3) default_panelMoviePos(4)])
 
     default_panelProcPos = get(handles.panel_proc,'Position');
-    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-175)+default_panelMoviePos(4)+66.8;
+    sliderMoveSize = default_panelProcPos(4)+(nProc-1)*40 -(screenSize(4)-100)+default_panelMoviePos(4)+66.8;
 
     set(handles.panel_proc,'Position',...
         [default_panelProcPos(1) default_panelProcPos(2)-sliderMoveSize ...
@@ -309,7 +317,7 @@ else
 
     default_textStatusPos = get(handles.text_status,'Position');
     set(handles.text_status, 'Position',...
-        [default_textStatusPos(1) screenSize(4)-175-165.2 ...
+        [default_textStatusPos(1) screenSize(4)-100-165.2 ...
         default_textStatusPos(3) default_textStatusPos(4)])
 
     new_fig1Pos = get(handles.figure1,'Position');
@@ -402,7 +410,7 @@ set(handles.text_packageName,'String',userData.crtPackage.getName);
 
 % Set movie explorer
 msg = {};
-if isa(ip.Results.MO,'MovieData'), movieType = 'Movie'; else movieType = 'Movie list'; end
+if isa(ip.Results.MO,'MovieData'), movieType = 'Movie'; elseif isa(ip.Results.MO,'ImageData'), movieType = 'ImageData'; else movieType = 'Movie list'; end
 for i = 1: length(ip.Results.MO)
     msg = horzcat(msg, {sprintf('  %s %d of %d', movieType, i, length(ip.Results.MO))});
 end

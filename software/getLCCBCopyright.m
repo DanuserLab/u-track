@@ -15,7 +15,7 @@ function copyright = getLCCBCopyright()
 % Sebastien Besson, Feb 2013
 % Andrew Jamieson, Nov 2016 - UTSW
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -37,4 +37,4 @@ function copyright = getLCCBCopyright()
 % Set year and version information
 str_year = datestr(date,'YYYY');
 copyright = sprintf('Copyright %s Danuser Lab - UTSouthwestern', str_year);
-% -- TEST CI pipeline deploy to GITHUB -- CI pipeline build # 131931
+% -- TEST CI pipeline deploy to GITHUB -- CI pipeline build # 

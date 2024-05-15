@@ -24,7 +24,7 @@
 %   map - (len)x3 colormap table.
 %   B - size(A)x3 truecolor array.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

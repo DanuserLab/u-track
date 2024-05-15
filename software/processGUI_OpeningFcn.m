@@ -6,7 +6,8 @@ function processGUI_OpeningFcn(hObject, eventdata, handles, string,varargin)
 %       userData.handles_main - 'handles' of main figure
 %       userData.procID - The ID of process in the current package
 %       userData.MD - current MovieData array
-%       userData.MD - current MovieList array
+%       userData.ML - current MovieList array
+%       userData.ImD - current ImageData array
 %       userData.crtProc - current process
 %       userData.crtPackage - current package
 %       userData.crtProcClassName - current process class
@@ -18,7 +19,7 @@ function processGUI_OpeningFcn(hObject, eventdata, handles, string,varargin)
 %
 % Sebastien Besson May 2011
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -36,6 +37,9 @@ function processGUI_OpeningFcn(hObject, eventdata, handles, string,varargin)
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
+
+% Add ImageData compatibility
+% Updated by Qiongjing (Jenny) Zou, Jun 2020
 
 % Check input
 % The mainFig and procID should always be present
@@ -72,6 +76,8 @@ userData_main = get(userData.mainFig, 'UserData');
 userData.crtPackage = userData_main.crtPackage;
 if strcmp(userData.crtPackage.getMovieClass(), 'MovieData')
     userData.MD = userData_main.MD(userData_main.id);
+elseif strcmp(userData.crtPackage.getMovieClass(), 'ImageData')
+    userData.ImD = userData_main.ImD(userData_main.id);
 else
     userData.ML = userData_main.ML(userData_main.id);
 end
@@ -116,6 +122,9 @@ if isempty(userData.crtProc)
         if strcmp(movieClass,'MovieData')
             userData.crtProc = userData.procConstr(userData.MD, ...
                 userData.crtPackage.outputDirectory_);
+        elseif strcmp(movieClass,'ImageData')
+            userData.crtProc = userData.procConstr(userData.ImD, ...
+                userData.crtPackage.outputDirectory_);
         else
             userData.crtProc = userData.procConstr(userData.ML, ...
                 userData.crtPackage.outputDirectory_);
@@ -130,11 +139,20 @@ end
 % Check for multiple movies else
 if isfield(handles,'checkbox_applytoall')
     if ~isa(userData_main.crtPackage, 'XcorrFluctuationPackage')
-        if numel(userData_main.MD) ==1
-            set(handles.checkbox_applytoall,'Value',0,'Visible','off');
-        else
-            set(handles.checkbox_applytoall, 'Value',...
-                userData_main.applytoall(userData.procID));
+        if ~isempty(userData_main.MD) && isempty(userData_main.ImD)
+            if numel(userData_main.MD) ==1
+                set(handles.checkbox_applytoall,'Value',0,'Visible','off');
+            else
+                set(handles.checkbox_applytoall, 'Value',...
+                    userData_main.applytoall(userData.procID));
+            end
+        elseif isempty(userData_main.MD) && ~isempty(userData_main.ImD)
+            if numel(userData_main.ImD) ==1
+                set(handles.checkbox_applytoall,'Value',0,'Visible','off');
+            else
+                set(handles.checkbox_applytoall, 'Value',...
+                    userData_main.applytoall(userData.procID));
+            end
         end
     else
         if numel(userData_main.ML) ==1
@@ -170,11 +188,17 @@ if ~initChannel, return; end
 funParams = userData.crtProc.funParams_;
 
 % Set up available input channels
+if isfield(userData, 'MD')
 set(handles.listbox_availableChannels,'String',userData.MD.getChannelPaths(), ...
     'UserData',1:numel(userData.MD.channels_));
 
 channelIndex = funParams.ChannelIndex;
+elseif isfield(userData, 'ImD')
+set(handles.listbox_availableChannels,'String',userData.ImD.getImFolderPaths(), ...
+    'UserData',1:numel(userData.ImD.imFolders_));
 
+channelIndex = funParams.ImFolderIndex;
+end
 % Find any parent process
 parentProc = userData.crtPackage.getParent(userData.procID);
 if isempty(userData.crtPackage.processes_{userData.procID}) && ~isempty(parentProc)
@@ -190,7 +214,11 @@ if isempty(userData.crtPackage.processes_{userData.procID}) && ~isempty(parentPr
 end
 
 if ~isempty(channelIndex)
+    if isfield(userData, 'MD')
     channelString = userData.MD.getChannelPaths(channelIndex);
+    elseif isfield(userData, 'ImD')
+        channelString = userData.ImD.getImFolderPaths(channelIndex);
+    end
 else
     channelString = {};
 end

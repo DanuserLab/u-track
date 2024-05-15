@@ -2,7 +2,7 @@ function [ out ] = textGraph( obj )
 %textGraph Summary of this function goes here
 %   Detailed explanation goes here
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -2,7 +2,7 @@ classdef CachedSequence < handle
 %% Simple cache interface for a XYCT sequences.
 %% Caching is very basic. Could be improved with advanced libraries.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -70,7 +70,7 @@ classdef CachedSequence < handle
     function obj=saveCache(obj)
        cache=obj.cache;
        mkdirRobust(fileparts(obj.outputPath));
-       save(obj.outputPath,'cache');
+       save(obj.outputPath,'cache','-v7.3');
        obj.cached=true;
     end
 
@@ -108,6 +108,7 @@ classdef CachedSequence < handle
     end
 
     function img=saveFrame(obj,img,fIdx,chIdx)
+        disp(size(obj.cache));
         if(isempty(obj.cache))
             obj.imgNDims=ndims(img);
             obj.cache=repmat(img,[ones(1,ndims(img)) obj.nFrames obj.nCh]);

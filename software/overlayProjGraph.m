@@ -2,6 +2,7 @@ function [tracksXY,tracksZY,tracksZX]=overlayProjGraph(XYProj,ZYProj,ZXProj,XLim
 ip = inputParser;
 ip.CaseSensitive = false;
 ip.KeepUnmatched = true;
+ip.PartialMatching = false;
 ip.addOptional('cumulative',false);
 ip.addOptional('detectionBorderDisplay',0);
 ip.addParameter('showROIOnly',true); % show only the edges with a vertice that belong to the ROI.
@@ -21,7 +22,7 @@ p=ip.Results;
   %   colorIndx=arrayfun(@(d) ones(1,size(d.zCoord,1)),detections,'unif',0);
   % end
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

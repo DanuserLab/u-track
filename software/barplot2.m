@@ -32,7 +32,7 @@
 % Andrew R. Jamieson, Nov. 2016  - fixed deprecated errorbar style bug and
 % other figure errors.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

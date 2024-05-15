@@ -90,7 +90,7 @@ function [diffAnalysisRes,errFlag] = trackDiffusionAnalysis1(tracks,...
 %(1)While tracks do not have to be linear in order to be asymmetric,
 %the last analysis step assumes that tracks are linear.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

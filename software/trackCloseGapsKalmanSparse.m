@@ -1,4 +1,4 @@
-function [tracksFinal,kalmanInfoLink,errFlag] = trackCloseGapsKalmanSparse(...
+function [tracksFinal,kalmanInfoLink,errFlag,trackabilityData] = trackCloseGapsKalmanSparse(...
     movieInfo,costMatrices,gapCloseParam,kalmanFunctions,probDim,...
     saveResults,verbose,varargin)
 %TRACKCLOSEGAPSKALMANSPARSE (1) links features between frames, possibly using the Kalman Filter for motion propagation and (2) closes gaps, with merging and splitting
@@ -120,7 +120,7 @@ function [tracksFinal,kalmanInfoLink,errFlag] = trackCloseGapsKalmanSparse(...
 % to instantly remove the information, rather than store it and then manually
 % delete it.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -216,6 +216,12 @@ if errFlag
     disp('--trackCloseGapsKalmanSparse: Please fix input parameters.');
     return
 end
+
+
+%% Additional options using inputParser for simplicity
+p = inputParser;
+addOptional(p,'estimateTrackability',false);        
+parse(p,varargin{:});
 
 %% preamble
 
@@ -387,14 +393,14 @@ if selfAdaptive
         disp('Linking features forwards ...');
     end
     % [tracksFeatIndxLink,tracksCoordAmpLink,kalmanInfoLink,nnDistLinkedFeat,...
-    %     dummy,errFlag] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
+    %     dummy,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
     %     costMatrices(1).parameters,kalmanFunctions,probDim,...
-    %     kalmanInfoLink,linkingCosts,verbose);
+    %     kalmanInfoLink,linkingCosts,verbose,'estimateTrackability',p.Results.estimateTrackability);
     % clear dummy
     [tracksFeatIndxLink,tracksCoordAmpLink,kalmanInfoLink,nnDistLinkedFeat,...
-    ~,errFlag] = linkFeaturesKalmanSparse(movieInfo,str2func(costMatrices(1).funcName),...
-    costMatrices(1).parameters,kalmanFunctions,probDim,...
-    kalmanInfoLink,linkingCosts,verbose); % Updated by Carmen Klein Herenbrink and Brian Devree
+        ~,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,str2func(costMatrices(1).funcName),...
+        costMatrices(1).parameters,kalmanFunctions,probDim,...
+        kalmanInfoLink,linkingCosts,verbose,'estimateTrackability',p.Results.estimateTrackability); % Updated by Carmen Klein Herenbrink and Brian Devree
     
 else %if not self-adaptive, link in one round only
     
@@ -403,18 +409,21 @@ else %if not self-adaptive, link in one round only
         disp('Linking features ...');
     end
     % [tracksFeatIndxLink,tracksCoordAmpLink,dummy,nnDistLinkedFeat,...
-    %     dummy,errFlag] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
-    %     costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose);
+    %     dummy,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,costMatrices(1).funcName,...
+    %     costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose,'estimateTrackability',false);
     % clear dummy
     [tracksFeatIndxLink,tracksCoordAmpLink,~,nnDistLinkedFeat,...
-    ~,errFlag] = linkFeaturesKalmanSparse(movieInfo,str2func(costMatrices(1).funcName),...
-    costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose); % Updated by Carmen Klein Herenbrink and Brian Devree
+        ~,errFlag,trackabilityData] = linkFeaturesKalmanSparse(movieInfo,str2func(costMatrices(1).funcName),...
+        costMatrices(1).parameters,kalmanFunctions,probDim,[],[],verbose,'estimateTrackability',false); % Updated by Carmen Klein Herenbrink and Brian Devree
     kalmanInfoLink = [];
 
 end
 
 %% post-processing of linking results
 
+if(~isempty(trackabilityData))
+    trackabilityData.frames=emptyStart+1:(numFrames - emptyEnd);
+end
 
 %this function now breaks up frame-to-frame linked tracks if they do not
 %follow a linear trajectory.  it only runs with the EB3 cost matrix

@@ -12,7 +12,7 @@ classdef TracksROI < DynROI
 
                 %% Cut the tracks to minimum lifetime
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -118,11 +118,11 @@ classdef TracksROI < DynROI
         end
         
         function frame=getStartFrame(obj)
-            frame=min([obj.tracks.startFrame]);
+            frame=max([obj.tracks.startFrame]);
         end
 
         function frame=getEndFrame(obj)
-            frame=max([obj.tracks.endFrame]);
+            frame=min([obj.tracks.endFrame]);
         end
 
         function [minCoord, maxCoord]=getBoundingBox(obj,ref,frameIdx)
@@ -197,8 +197,8 @@ classdef TracksROI < DynROI
                 minYBorder=(minY-fringeWidth);
                 minZBorder=(minZ-fringeWidth);
             end
-            minCoord=[minXBorder minYBorder minZBorder];
-            maxCoord=[maxXBorder maxYBorder maxZBorder];
+            minCoord=floor([minXBorder minYBorder minZBorder]);
+            maxCoord=ceil([maxXBorder maxYBorder maxZBorder]);
         end
 
     end

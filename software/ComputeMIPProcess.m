@@ -2,7 +2,7 @@ classdef  ComputeMIPProcess < ImageProcessingProcess & NonSingularProcess
     % Concrete class for a computing Maximum Intensity Projections (MIP)
     % Andrew R. Jamieson Aug. 2017
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -161,7 +161,7 @@ classdef  ComputeMIPProcess < ImageProcessingProcess & NonSingularProcess
             output(n).defaultDisplayMethod = @ImageDisplay;
             output(n).type = 'image';
 
-            if numel(obj.owner_.channels_) > 1 
+            if numel(obj.owner_.channels_) > 1 && numel(obj.funParams_.ChannelIndex) > 1
                 n = length(output)+1;
                 output(n).name = 'merged_all_three';
                 output(n).var = 'merged_all_three';

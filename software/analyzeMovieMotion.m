@@ -43,7 +43,13 @@ function analyzeMovieMotion(movieDataOrProcess,varargin)
 %       the length of both edges.
 %       Default:0
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+%
+% Sebastien Besson, Feb 2012
+%
+% Jesus Vega-Lugo, September 2023, Updated to allow the used of clean
+% tracks coming from refineTracksWithinMask
+%
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -61,9 +67,6 @@ function analyzeMovieMotion(movieDataOrProcess,varargin)
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-
-%
-% Sebastien Besson, Feb 2012
 
 %% Input
 %Check input
@@ -92,7 +95,17 @@ trackProc = movieData.processes_{iTrackProc};
 assert(all(trackProc.checkChannelOutput(p.ChannelIndex)),...
     ['Missing tracking output ! Please apply tracking before ' ...
     'running  post-processing!']);
+
+%load clean tracks
+if isfield(p,'useCleanTracks') && p.useCleanTracks
+    iTrackProc = movieData.getProcessIndex('RefineTracksWithinMaskProcess',1);
+
+    assert(~isempty(iTrackProc),['No cleaned tracks were found! '...
+    'Please run RefineTracksWithinMaskProcess to get clean tracks!'])
     
+    trackProc = movieData.getProcess(iTrackProc);
+end
+
 % Set up the input directories (input images)
 inFilePaths = cell(1,numel(movieData.channels_));
 for i = p.ChannelIndex

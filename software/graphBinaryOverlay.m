@@ -3,7 +3,7 @@ function rgbImg=graphBinaryOverlay(img,XLimit,YLimit,positions,edges,colorIndex,
 %% edges is a MxP matrix to connect position in line of P positions (N>2);
 %% P. Roudot 2018.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -25,8 +25,11 @@ function rgbImg=graphBinaryOverlay(img,XLimit,YLimit,positions,edges,colorIndex,
 ip = inputParser;
 ip.CaseSensitive = false;
 ip.KeepUnmatched = true;
+ip.PartialMatching = false; 
 ip.addOptional('linewidth',2);
 ip.addOptional('positionsLabel',{});   % position associated label (none if empty)
+ip.addOptional('showVertex',false);
+ip.addOptional('radius',5);
 ip.parse(varargin{:});
 p=ip.Results;
 %%
@@ -50,17 +53,20 @@ if(~isempty(edges))
         positions=[X Y];
     end
     for eIdx=1:size(edges,1)
-        % if(numel(p.radius)>1)
-        %     radius=ceil(p.radius(pIdx)*XRatio);
-        % else
-        %     radius=ceil(p.radius*XRatio);
-        % end
         pol=zeros(1,4);
         pol(1:2:end)=positions(edges(eIdx,:),1);
         pol(2:2:end)=positions(edges(eIdx,:),2);
         polygons{eIdx}=pol;
     end
-    rgbImg = insertShape(img,'Line',polygons,'linewidth',p.linewidth,'Color',colormap(colorIndex,:));
+    rgbImg = insertShape(img,'Line',polygons,'linewidth',p.linewidth,'Color', ...
+                         colormap(colorIndex,:));
+    if(p.showVertex)
+        radius=ceil(p.radius*XRatio);
+        cumulPositions=vertcat(polygons{:});
+        cumulPositions=[cumulPositions(:,[1 2]); cumulPositions(:,[3 4])];
+        cumulPositionsRadius=[cumulPositions repmat(radius,size(cumulPositions,1),1)];
+        rgbImg = insertShape(rgbImg,'Circle',cumulPositionsRadius,'Color',[255 0 0]);
+    end
 
     if(~isempty(p.positionsLabel))
         for lIdx=1:numel(p.positionsLabel)

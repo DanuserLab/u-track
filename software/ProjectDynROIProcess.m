@@ -4,7 +4,7 @@ classdef ProjectDynROIProcess <  NonSingularProcess & handle
 %% It is designed to be usable for partial rendering "Raw MIP" or "fused channel" in various format,
 %% hence the number of rendering channel and frames is taking into account.
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -113,6 +113,7 @@ classdef ProjectDynROIProcess <  NonSingularProcess & handle
             XYFilesPattern = outFilePaths{6, chIdx};
             YZFilesPattern = outFilePaths{7, chIdx};
             XZFilesPattern = outFilePaths{8, chIdx};
+
             imwrite(maxXY, sprintfPath(XYFilesPattern, fIdx), 'Compression', 'none');
             imwrite(maxZY, sprintfPath(YZFilesPattern, fIdx), 'Compression', 'none');
             imwrite(maxZX, sprintfPath(XZFilesPattern, fIdx), 'Compression', 'none');

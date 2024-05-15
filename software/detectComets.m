@@ -15,7 +15,7 @@ function movieInfo = detectComets(I,stepSize,thresh)
 %     movieInfo   : a structure compatible with the tracker containing the
 %     x/y coordinates, comet amplitude, maximum intensity and eccentricity
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

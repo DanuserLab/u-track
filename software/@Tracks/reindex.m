@@ -9,7 +9,7 @@ function [ oldIdx ] = reindex( obj, idx )
 % OUTPUT
 % oldIdx - Previous indices or empty if not available
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

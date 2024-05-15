@@ -1,8 +1,8 @@
-function path=sprintfPath(XYProjTemplate,fIdx)
+function path=sprintfPath(XYProjTemplate,varargin)
 % making sprintf windows-path-proof
 % sprintf applied on the filename only
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -21,5 +21,5 @@ function path=sprintfPath(XYProjTemplate,fIdx)
 % 
 % 
 [folder,file,ext]=fileparts(XYProjTemplate);
-filename=sprintf(file,fIdx);
+filename=sprintf(file,varargin{:});
 path=fullfile(folder,[filename ext]);

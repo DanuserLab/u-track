@@ -2,7 +2,7 @@ function tracksFinal = convertMat2Struct2(tracksMat)
 
 %get number of tracks
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -31,19 +31,29 @@ trackSEL = getTrackSEL(tracksMat);
 
 %go over all tracks and store information
 for iTrack = 1 : numTracks
-   
+    
     %track start time and end time
     startTime = trackSEL(iTrack,1);
     endTime = trackSEL(iTrack,2);
     
-    %feature indices
-    %     tracksFinal(iTrack).tracksFeatIndxCG = tracksFeatIndxLink(iTrack,startTime:endTime);
-    
-    %feature coordinates and amplitudes
-    tracksFinal(iTrack).tracksCoordAmpCG = full(tracksMat(iTrack,...
-        (startTime-1)*8+1:endTime*8));
-    
-    %sequence of events
-    tracksFinal(iTrack).seqOfEvents = [startTime 1 1 NaN; endTime 2 1 NaN];
+    if ~isnan(startTime)
+        
+        %feature indices
+        tracksFinal(iTrack).tracksFeatIndxCG = ones(1,endTime-startTime+1);
+        
+        %feature coordinates and amplitudes
+        tracksFinal(iTrack).tracksCoordAmpCG = full(tracksMat(iTrack,...
+            (startTime-1)*8+1:endTime*8));
+        
+        %sequence of events
+        tracksFinal(iTrack).seqOfEvents = [startTime 1 1 NaN; endTime 2 1 NaN];
+        
+    else
+        
+        tracksFinal(iTrack).tracksFeatIndxCG = 1;
+        tracksFinal(iTrack).tracksCoordAmpCG = NaN(1,8);
+        tracksFinal(iTrack).seqOfEvents = [1 1 1 NaN; 1 2 1 NaN];
+        
+    end
     
 end

@@ -2,6 +2,7 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
 
     properties (SetAccess = public, GetAccess = public)
         defaultRef; % If the ROI if 1D or 2D, it will generate a default frame of reference. 
+        swapDynROIMDFile;
     end
     methods
     function obj = setDefaultRef(obj,ref)
@@ -22,7 +23,7 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         %% In a first version, the mask is built using the mapPosition function.
         %% Every pixel in the boundingbox is transformed as a position 
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -79,7 +80,6 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
             minCoord=[1 1 1];
             maxCoord=[MD.imSize_(2) MD.imSize_(1) MD.zSize_*ZXRatio];
         end
-
         parfor f=processFrames
             vol=stackLoader{1}(f);
             % For added robustness, works if DynROI is a dummy
@@ -138,16 +138,21 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         MDFile=[outputDir filesep 'analysis' filesep 'movieData.mat'];
     end
 
-    function [MDout,MDFile]=swapDynBoundingBox(obj,MD,subFolder)
+    function [MDout,MDFile]=swapDynBoundingBox(obj,MD,subFolder,varargin)
+        ip = inputParser;
+        ip.addParameter('outputDir', [MD.outputDirectory_ filesep subFolder]);
+        parse(ip, varargin{:})
+        p = ip.Results;
+        
         % Swap the box bounding the dynROI in the default ref. 
         ZXRatio=MD.pixelSizeZ_/MD.pixelSize_;
 
-        outputDir=[MD.outputDirectory_ filesep subFolder filesep];
+%         outputDir=[MD.outputDirectory_ filesep subFolder filesep];
         channelList(numel(MD.channels_))=Channel();
 
         for cIdx=1:numel(MD.channels_)
             stackLoader = arrayfun(@(f) @(f)(MD.channels_(cIdx).loadStack(f)),1:(MD.nFrames_),'unif',0);
-            chFolder=[outputDir filesep 'ch' num2str(cIdx) filesep];
+            chFolder=[p.outputDir filesep 'ch' num2str(cIdx) filesep];
             mkClrDir(chFolder);
             filePattern=[chFolder filesep 'subvol-ch-' num2str(cIdx) '-frame-%04d.tif'];
 
@@ -161,15 +166,17 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         end
 
         tiffReader=TiffSeriesReader({channelList.channelPath_},'force3D',true);
-        MDout=MovieData(channelList,[outputDir 'analysis'],'movieDataFileName_','movieData.mat','movieDataPath_',[outputDir filesep 'analysis'], ...
+        MDout=MovieData(channelList,[p.outputDir filesep 'analysis'],'movieDataFileName_','movieData.mat','movieDataPath_',[p.outputDir filesep 'analysis'], ...
             'pixelSize_',MD.pixelSize_,'pixelSizeZ_',MD.pixelSize_,'timeInterval_',MD.timeInterval_);
         MDout.setReader(tiffReader);
         MDout.sanityCheck(); % the usual fucking performance killer...
         MDout.save();
-        MDFile=[outputDir filesep 'analysis' filesep 'movieData.mat'];
+        MDFile=[p.outputDir filesep 'analysis' filesep 'movieData.mat'];
+        obj.swapDynROIMDFile=MDFile;
     end
     
     function [subVol,minCoord,maxCoord] = getSubVol(obj,vol,ZXRatio,frameIdx)
+
         % The intrinsic coordinate values (x,y,z) of the center point of any
         % pixel are identical to the values of the column, row, and plane
         % subscripts for that pixel. For example, the center point of the
@@ -196,7 +203,9 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         minZBorderCurr=minZBorderFull - orig(3); maxZBorderCurr=maxZBorderFull - orig(3);
         
         inputRef=imref3d(size(vol), ...
-            [minXBorderCurr maxXBorderCurr], [minYBorderCurr maxYBorderCurr], [minZBorderCurr maxZBorderCurr]);
+            [minXBorderCurr maxXBorderCurr], ...
+            [minYBorderCurr maxYBorderCurr], ...
+            [minZBorderCurr maxZBorderCurr]);
         
         [minCoord,maxCoord]=obj.getBoundingBox(ref);
         maxXBorder=maxCoord(1);
@@ -213,11 +222,14 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         minZBorderCurr=(minZBorder);
         maxZBorderCurr=(maxZBorder);
         
-        rotOutputRef=imref3d([    ceil(maxYBorderCurr-minYBorderCurr)+1 ...
-            ceil(maxXBorderCurr-minXBorderCurr)+1 ...
-            ceil(maxZBorderCurr-minZBorderCurr)+1 ], ...
-             [minXBorderCurr maxXBorderCurr], [minYBorderCurr maxYBorderCurr], [minZBorderCurr maxZBorderCurr]);
-       
+        rotOutputRef=imref3d([  ceil(maxYBorderCurr-minYBorderCurr)                       ...
+                                ceil(maxXBorderCurr-minXBorderCurr)                       ...
+                                ceil(maxZBorderCurr-minZBorderCurr) ],                    ...
+                                [minXBorderCurr maxXBorderCurr], ...
+                                [minYBorderCurr maxYBorderCurr], ...
+                                [minZBorderCurr maxZBorderCurr]);
+        A=ref.getAffineTransform(frameIdx);
+        % A.T
         B=ref.getBase(frameIdx);
         tformRotOnly=affine3d();
         tformRotOnly.T(1:3,1:3)=B(:,[1 2 3]);

@@ -7,7 +7,7 @@ function [ bfMemoDir ] = bfGetMemoDirectory( makeDir )
 %           exists. Default: true (on the first time run; false otherwise
 %           unless clear is used)
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -39,7 +39,7 @@ function [ bfMemoDir ] = bfGetMemoDirectory( makeDir )
     end
 
     % bfMemoDir = [tempdir 'bioformatsMatlab'];
-    bfMemoDir = [tempdir 'bioformatsMatlabMemoDir']
+    bfMemoDir = [tempdir 'bioformatsMatlabMemoDir'];
     
 % Decided this was best dealt with upstream:
 % https://github.com/openmicroscopy/bioformats/issues/3034

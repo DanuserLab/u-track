@@ -7,6 +7,7 @@ function projImages=overlayProjTracksMovie(processProj,varargin)
   ip.addParameter('tracks',[]);
   ip.addParameter('process',[]);
   ip.addParameter('processFrames',[]);
+  ip.addParameter('cumulative',false);
   ip.addParameter('showNumber',false);
   ip.addParameter('show',true);
   ip.addParameter('dragonTail',[]);
@@ -15,8 +16,9 @@ function projImages=overlayProjTracksMovie(processProj,varargin)
   ip.addParameter('colorLabel',[]);
   ip.addParameter('minMaxLabel',[]);
   ip.addParameter('detectionFrameIdx',[]);  % Useful for decimation: specify the frame associated to each detection 
+  ip.addParameter('decFactor',1); % Another hack for detection.
   ip.addParameter('saveVideo',false);
-  ip.addParameter('useGraph',false);
+  ip.addParameter('useGraph',true);
   ip.addParameter('name','tracks');
   ip.parse(processProj,varargin{:});
   p=ip.Results;
@@ -42,10 +44,12 @@ function projImages=overlayProjTracksMovie(processProj,varargin)
   end
 
   detFrame=p.detectionFrameIdx;
-  if(isempty(detFrame))
-    % detFrame=1:max(processFrames);
+  % if(isempty(detFrame))
+  %   detFrame=1:max(processFrames);
+  %   %detFrame=processFrames;
+  % end
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -63,22 +67,20 @@ function projImages=overlayProjTracksMovie(processProj,varargin)
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-    detFrame=processFrames;
-  end
 
 
   projDataIdx=5; 
   ref=[];
   % try % Handle Project1D/ProjDyn with different implementation (current and then deprecated)
     ref=get(processProj,'ref');
-    if(~isempty(ref)&&~isempty(p.detectionFrameIdx))
+    if(~isempty(ref)&&~isempty(detFrame))
       refDecim=copy(ref);
       refDecim=refDecim.selectFrame(detFrame);
       refDecim.frame=1:numel(refDecim.frame);
       ref=refDecim;
     end
     if(~isempty(ref))
-    tracks=ref.applyBase(tracks,'');
+        tracks=ref.applyBase(tracks,'');
     end
     projData=processProj;
   % catch
@@ -115,7 +117,7 @@ if(~isempty(p.colorLabel))
   end
 
    if(isempty(p.minMaxLabel))
-     minLabel=min(allLabel);
+     minLabel=min(allLabel); 
      maxLabel=max(allLabel);
    else
      minLabel=p.minMaxLabel(1);
@@ -138,7 +140,7 @@ saveInProcess=~isempty(p.process);
 % detStruct=det.getAllStruct();
 % detStruct.trackID=vertcat(trackIndices{:});
 
-trackFrame=arrayfun(@(t) t.f,tracks,'unif',0);
+trackFrame=arrayfun(@(t) 1+(t.f-1)*p.decFactor,tracks,'unif',0);
 
 frameNb=projData.frameNb;
 
@@ -148,13 +150,11 @@ imLoader= @(fIdx)(processProj.loadFrame(1,fIdx));
 imSaved=cell(1,numel(processFrames));
 
 
-parfor fIdxIdx=1:numel(processFrames)
+for fIdxIdx=1:numel(processFrames)
   fIdx=processFrames(fIdxIdx);
   [XYProj,ZYProj,ZXProj,three]=feval(imLoader,fIdx);
   % dIdx=find(fIdx==detFrame);
   dIdx=fIdx;
-
-
 
   if(~p.useGraph)
     [tracksXY,tracksZY,tracksZX]=overlayProjTracks(XYProj,ZYProj,ZXProj, ...
@@ -164,9 +164,14 @@ parfor fIdxIdx=1:numel(processFrames)
         dIdx,tracks,myColormap,colorIndx,varargin{:});
   else
     %% All positions and edge representing track present on frame dIdx
-    tracksInFrame=cellfun(@(f) any(f==dIdx),trackFrame);
-    [vert,edges,frames,edgesLabel]=tracks(tracksInFrame).getGraph();
+    if(~p.cumulative)
+        tracksInFrame=cellfun(@(f) any(f==dIdx),trackFrame);
+    else
+        tracksInFrame=true(size(trackFrame));
+    end
 
+    [vert,edges,frames,edgesLabel]=tracks(tracksInFrame).getGraph();
+    frames=p.decFactor*(frames-1)+1;
 
     %% position label only kept for all edges on the current view
     positionsLabel={};
@@ -178,9 +183,13 @@ parfor fIdxIdx=1:numel(processFrames)
       end
     end
 
-    %% keep only the edge before the current time points
-    tailIndx=(frames<=dIdx)&(frames>=(dIdx-p.dragonTail));
-    edges=edges(tailIndx,:);
+    if(~p.cumulative)
+        %% keep only the edge before the current time points
+        tailIndx=(frames<=dIdx)&(frames>=(dIdx-p.dragonTail));
+        edges=edges(tailIndx,:);
+    else
+        tailIndx=true(size(frames));
+    end
 
     %% sync colorIndx
     fColorIndx=colorIndx(tracksInFrame);

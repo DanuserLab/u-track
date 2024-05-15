@@ -72,7 +72,7 @@ function axH = plotTracks3D(trackedFeatureInfo,timeRange,colorTime,markerType,..
 %edits Philippe Roudot, October 2014
 % adapted for 3DUtrackPackage GUI simple figure display of output.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -314,7 +314,6 @@ switch colorTime
         plot3(axH,tracksXP,tracksYP,tracksZP);
 
     otherwise
-        disp('test')
         %plot tracks with the line color indicated, where missing intervals are
         %indicated by a dotted line
         for i = 1 : trackStartRow(end) + numSegments(end) - 1

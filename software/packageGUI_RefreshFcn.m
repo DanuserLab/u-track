@@ -11,7 +11,7 @@ function packageGUI_RefreshFcn(handles, type)
 % Chuangang Ren 08/2010
 % Sebastien Besson (last modified Nov 2011)
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -52,6 +52,9 @@ set(setupHandles,'Enable','on');
 if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
 if isa(userData.crtPackage, 'XcorrFluctuationPackage')
     field = 'ML';
+end
+if isa(userData.crtPackage, 'FishATLASPackage')
+    field = 'ImD';
 end
 
 if isa(userData.crtPackage, 'Morphology3DPackage')

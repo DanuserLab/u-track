@@ -14,7 +14,7 @@ function plusTipMakeHistograms(rawData,saveDir,varargin)
 %   plotSde - 0 or 1 if the user wants to plot the standard error as an
 %   errorbar
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

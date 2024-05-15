@@ -18,7 +18,7 @@ function optionsFig = movieViewerOptions(mainFig)
 % Sebastien Besson, Nov 2012
 % Andrew R. Jamieson - Modified Feb 2017
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -58,7 +58,7 @@ function movieData = intersectMovieMasks(movieDataOrProcess,varargin)
 % 
 % Sebastien Besson, Oct 2011
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -198,11 +198,12 @@ outMask=@(frame) [p.OutputDirectory filesep 'intersected_mask_' numStr(frame) '.
 
 % Redefine mask names
 for j= 1:nFrames
-    mask = true(movieData.imSize_);
+    % mask = true(movieData.imSize_);
+    mask = true(size(imread(inMask(1,j)))); % make it work for cropped images
     for i = 1:numel(p.ChannelIndex)
         mask = mask & logical(imread(inMask(i,j)));
     end
-    imwrite(mask,outMask(j));
+    imwrite(mask,outMask(j), 'Compression','none'); % fixed issue of ImageJ cannot open compressed mask. - Qiongjing (Jenny) Zou, Jan 2023
 
     if mod(j,5)==1 && ishandle(wtBar)
         waitbar(j/nFrames,wtBar);

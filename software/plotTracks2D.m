@@ -82,7 +82,7 @@ function plotTracks2D(trackedFeatureInfo, varargin)
 %
 %Khuloud Jaqaman, August 2006
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -325,7 +325,7 @@ switch colorTime
         %plot tracks with the line color indicated
         %missing intervals are indicated by a dotted line
         lineWithGaps(tracksXP,tracksYP,removeGapParams);
-        lineWithGaps(tracksXP,tracksYP,'Color',colorTime,'Marker',markerType);
+        lineWithGaps(tracksXP,tracksYP,'Color',colorTime,'Marker',markerType); %,'LineWidth',2);
         
 end %(switch colorTime)
 

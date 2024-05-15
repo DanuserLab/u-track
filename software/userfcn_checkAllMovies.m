@@ -1,14 +1,9 @@
 function userfcn_checkAllMovies(procID, value, handles)
 
-if get(handles.checkbox_all, 'Value')
-    
-    userData = get(handles.figure1, 'UserData');
-    if ~isa(userData.crtPackage, 'XcorrFluctuationPackage')
-        for x = setdiff(1:length(userData.MD), userData.id)
-            % Recalls the userData that may have been updated by the
-            % checkAllMovies function
+% Add ImageData compatibility
+% Updated by Qiongjing (Jenny) Zou, July 2020
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -26,6 +21,19 @@ if get(handles.checkbox_all, 'Value')
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
+
+if get(handles.checkbox_all, 'Value')
+    
+    userData = get(handles.figure1, 'UserData');
+    if ~isa(userData.crtPackage, 'XcorrFluctuationPackage')
+        if ~isempty(userData.MD) && isempty(userData.ImD)
+            n = length(userData.MD);
+        elseif isempty(userData.MD) && ~isempty(userData.ImD)
+            n = length(userData.ImD);
+        end
+        for x = setdiff(1:n, userData.id)
+            % Recalls the userData that may have been updated by the
+            % checkAllMovies function
             userData=get(handles.figure1, 'UserData');
             userData.statusM(x).Checked(procID) = value;
             set(handles.figure1, 'UserData', userData)

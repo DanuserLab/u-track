@@ -1,7 +1,7 @@
 function  newTracks=addSphericalCoord(obj,tracks)
    % Philippe Roudot 2017
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

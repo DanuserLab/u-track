@@ -2,7 +2,7 @@ function [ combinedTrack ] = combine( obj )
 %combine Combine multiple tracks together by uniquely indexing their
 %segments
 %
-% Copyright (C) 2019, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

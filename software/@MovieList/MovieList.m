@@ -1,7 +1,7 @@
 classdef MovieList < MovieObject
     % Concrete implementation of MovieObject for a list of movies
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -307,6 +307,6 @@ classdef MovieList < MovieObject
         end
         
         % Use Regular expression to build a movie list by scanning dirs
-        ML = buildByRegexp(filter,outputDirectory);
+        ML = buildByRegexp(filter,outputDirectory,findMatsInDirs);
     end
 end

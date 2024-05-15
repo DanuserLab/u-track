@@ -30,7 +30,7 @@ function croppedMovieData = cropMovie(movieData,varargin)
 %   additionalFiles - (optional,param/value) a cell array of paths
 %   corresponding to additional images to be cropped using the same region.
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -99,7 +99,7 @@ channelPublicFields= cellfun(@(x) strcmpi(x,'public'),channelFieldsAccess);
 channels(nChan)=Channel();
 for i = 1:nChan
     disp('Cropping channel:')
-    disp(newImDirs{i});
+    disp(imDirs{i});
     disp('Results will be saved under:')
     disp(newImDirs{i});
     mkClrDir(newImDirs{i});

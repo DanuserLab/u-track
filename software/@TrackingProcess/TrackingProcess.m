@@ -5,8 +5,9 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
     % Sebastien Besson (last modified Dec 2011)
     % Mark Kittisopikul, Nov 2014, Added channelOutput cache
     % Andrew R. Jamieson, Dec 2016, updated parameters for getDefaultGapClosingCostMatrices and GUI
+    % Philippe Roudot added displayAll function, which is for results display in algorithm script, not used by the packages. 2018
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -24,7 +25,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-    
+
     properties
         useCache_ = false;
     end
@@ -34,6 +35,11 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
         function obj = TrackingProcess(owner, varargin)
             if nargin == 0
                 super_args = {};
+            elseif nargin == 4 % added for its subclass TrackingDynROIProcess    
+                super_args{1} = owner;    
+                super_args{2} = varargin{1};    
+                super_args{3} = varargin{2};    
+                super_args{4} = varargin{3};
             else
                 % Input check
                 ip = inputParser;
@@ -60,12 +66,147 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
         function h=draw(obj,iChan,varargin)
             h = obj.draw@DataProcessingProcess(iChan,varargin{:},'useCache',true);
         end
+
+        function overlayCell=displayAll(obj,iChan,displayProjsProcess,varargin)
+            ip =inputParser;
+            ip.CaseSensitive = false;
+            ip.KeepUnmatched = true;
+            ip.addOptional('iChan',@(x) isscalar(x) && obj.checkChanNum);
+            ip.addOptional('displayProjsProcess',obj.getOwner().searchProcessName('RenderDynROI'),@(x) isa(x,'RenderDynROI')||isa(x,'cell'));
+            ip.addParameter('output','movieInfo',@ischar);
+            ip.addParameter('show',true,@islogical);
+            ip.addParameter('useDetection',false,@islogical);
+            ip.addParameter('plotGaps',false,@islogical);
+            ip.addParameter('gapColormap',[],@isnumeric);
+            ip.addParameter('gapRenderingMethod','FilledCircle',@ischar)
+            ip.addParameter('gapRadius',1.5,@isnumeric);
+            ip.addParameter('gapOpacity',0.5,@isnumeric);
+            ip.addParameter('tracks',[],@(x) isa(x,'Tracks')); % side load tracks for convenience...
+            ip.addParameter('trackLabel','depth',@(x) isnumeric(x)||any(strcmpi(x, { ... 
+                                    'ID', ...
+                                    'lifetime', ...
+                                    'depth', ...
+                                    'speed', ...
+                                    'segmentTrackability', ...
+                                    'meanTrackability'})));
+            ip.addParameter('showTrackability',0);
+            ip.addParameter('showNumber',false);
+            ip.addParameter('processFrames',[]);
+            ip.parse(iChan,displayProjsProcess,varargin{:})
+            p=ip.Results;
+
+            fParam=obj.funParams_;
+
+            displayProjs=cell(1,numel(displayProjsProcess));
+            for pIdx=1:numel(displayProjsProcess)
+                if(isa(displayProjsProcess(pIdx),'RenderDynROI'))
+                    data=displayProjsProcess(pIdx).loadFileOrCache();
+                    displayProjs{pIdx}=[data{2}.processRenderCell{:}];
+                else
+                    displayProjs{pIdx}=displayProjsProcess{pIdx};
+                end
+            end
+            displayProjs=num2cell([displayProjs{:}]);
+            overlayCell=cell(1,numel(displayProjs));
+            for rIdx=1:numel(overlayCell)
+                overlay=ProjectDynROIRendering(displayProjs{rIdx},['ROI-' obj.getProcessTag()]);
+                overlay.ZRight=displayProjs{rIdx}.ZRight;
+                overlay.Zup=displayProjs{rIdx}.Zup;
+                overlayCell{rIdx}=overlay;
+            end
+
+            if(isempty(p.tracks))
+                tracks=TracksHandle(obj.loadChannelOutput(iChan));
+            else
+                tracks=p.tracks;
+            end
+
+            if(~isnumeric(p.trackLabel))
+            switch p.trackLabel
+                case 'lifetime'
+                    trackLabel=arrayfun(@(t) t.lifetime,tracks);
+                case 'ID'
+                    trackLabel=1:numel(tracks);
+                case 'depth'
+                    trackLabel=arrayfun(@(t) nanmean(t.z),tracks);
+                case 'speed'
+                    trackLabel=arrayfun(@(t) ((t.x(2:end)-t.x(1:end-1)).^2+(t.y(2:end)-t.y(1:end-1)).^2+(t.z(2:end)-t.z(1:end-1)).^2).^0.5,tracks,'unif',0);
+                case 'segmentTrackability'
+                    tmp=load(obj.outFilePaths_{3,iChan}); 
+                    trackabilityData=tmp.trackabilityData;
+                    trackLabel=trackabilityData.segTrackability;
+                case 'meanTrackability'
+                    tmp=load(obj.outFilePaths_{3,iChan}); 
+                    trackabilityData=tmp.trackabilityData;
+                    trackLabel=cellfun(@(t) nanmean(t),trackabilityData.segTrackability);
+                otherwise
+                    error('Undefined label');
+            end
+            else
+                trackLabel=p.trackLabel;
+            end
+
+            trackDet=[];
+            if(p.showTrackability==1)
+                    tmp=load(obj.outFilePaths_{3,iChan}); 
+                    trackabilityData=tmp.trackabilityData;
+                    trackDet=trackabilityData.predExpectation;
+                    detTrackability=trackabilityData.trackabilityCost;
+                    radii=cellfun(@(t) 1+3*(1-t),detTrackability,'unif',0);
+                    trackDetLabel=detTrackability;
+            end
+
+            if(p.useDetection)
+                [trackDet,lifetimeLabels,trackIndices]=Detections().getTracksCoord(tracks);
+                trackDetLabel=cellfun(@(i) trackLabel(i),trackIndices,'unif',0);
+                radii=2;
+            end
+
+            if(p.showTrackability==2)
+                tmp=load(obj.outFilePaths_{3,iChan}); 
+                trackabilityData=tmp.trackabilityData;
+                trackDet=trackabilityData.samplesDetections;
+                trackDetLabel=trackabilityData.votingLabel;
+                radii=0.5;  
+            end
+            disp('::::')
+            disp('Overlaying tracks');
+            
+            for rIdx=1:numel(overlayCell)
+                myColormap=256*parula(256);
+                tracksCopy=tracks.copy();
+                if(p.useDetection||p.showTrackability>0)
+                    overlayProjDetectionMovie(displayProjs{rIdx},'detections',trackDet, 'process',overlayCell{rIdx}, ... 
+                        'renderingMethod','FilledCircle','colorLabel',trackDetLabel,'cumulative',false, ...
+                        'colormap',myColormap,'radius',radii,'detectionBorderDisplay',1.5,varargin{:}); 
+                else
+                    overlayProjTracksMovie(displayProjs{rIdx},'tracks',tracks,'dragonTail',10, ... 
+                        'colormap',myColormap,'colorLabel',trackLabel, ... 
+                        'process',overlayCell{rIdx},varargin{:},'showVertex',false); 
+                end
+                if(p.plotGaps)
+                   overlayProjTrackGapMovie(overlayCell{rIdx},'tracks',tracksCopy,  ... 
+                                        'process',overlayCell{rIdx},'showNumber',false, ...
+                                        'renderingMethod',p.gapRenderingMethod,'radius',p.gapRadius, ...
+                                        'opacity',p.gapOpacity,'colormap',p.gapColormap,'processFrames',p.processFrames);
+                end
+
+           
+            end
+
+            if(p.show)
+            for rIdx=1:numel(displayProjs)
+                overlayCell{rIdx}.cachedOrtho.imdisp();
+                drawnow;
+            end
+            end
+        end
         
         function varargout = loadChannelOutput(obj, iChan, varargin)
             
             % Input check
             outputList = {'tracksFinal', 'gapInfo', 'staticTracks',...
-                          'plottracks3d'};
+                          'plottracks3d','tracksDynROIRef'};
             ip =inputParser;
             ip.addRequired('obj');
             ip.addRequired('iChan', @(x) obj.checkChanNum(x));
@@ -97,6 +238,9 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
                         varargout{i} = s.tracksFinal;
                     case 'gapInfo'
                         varargout{i} = findTrackGaps(s.tracksFinal);
+                    case 'tracksDynROIRef'
+                        tmp=load(obj.outFilePaths_{4,iChan});
+                        varargout{i}=tmp.tracksDynROIRef;
                 end
                 if strcmp(output{i}, 'tracksFinal') && ~isempty(iFrame)
                     % Filter tracks existing in input frame
@@ -307,7 +451,8 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
             % Set default parameters
             nChan = numel(owner.channels_);
             funParams.ChannelIndex = 1:numel(owner.channels_);
-            
+%             funParams.EstimateTrackability=false;
+%             funParams.processBuildDynROI=[]; % DynROI used for computation
             
             % should detect for which channels a detection process output exists.
             funParams.DetProcessIndex = []; % perhaps tag by process & channel
@@ -316,6 +461,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
             % --------------- time range ----------------
             funParams.timeRange = []; % empty implies entier movie
             % --------------- gapCloseParam ----------------
+            % Note: default gapCloseParam.timeWindow ("Maximum gap to close") was set as funParams.gapCloseParam.timeWindow -1 on the setting GUI.
             funParams.gapCloseParam.timeWindow = 5; %IMPORTANT maximum allowed time gap (in frames) between a track segment end and a track segment start that allows linking them.
             funParams.gapCloseParam.mergeSplit = 0; % (SORT OF FLAG: 4 options for user) 1 if merging and splitting are to be considered, 2 if only merging is to be considered, 3 if only splitting is to be considered, 0 if no merging or splitting are to be considered.
             funParams.gapCloseParam.minTrackLen = 1; %minimum length of track segments from linking to be used in gap closing.
@@ -327,12 +473,20 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
             kalmanFunctions = rmfield(kalmanFunctions,fields(~ismember(fields,validFields)));
             funParams.kalmanFunctions = kalmanFunctions;            
             % --------------- saveResults ----------------
-            funParams.saveResults.export = 0; %FLAG allow additional export of the tracking results into matrix
+            funParams.saveResults.export = 0; %FLAG allow additional export tracking results into matrix
+%             funParams.saveResults.exportTrackabilityData = 1; %FLAG allow exporting Kalman filter variable
+
+
             % --------------- Others ----------------            
             funParams.verbose = 1;
             
             if owner.is3D
                 funParams.probDim = 3;
+                funParams.EstimateTrackability=false;
+                funParams.processBuildDynROI=[]; % DynROI used for computation
+                funParams.buildDynROIProcessChannel=1;
+                funParams.saveResults.exportTrackabilityData = 1; %FLAG allow exporting Kalman filter variable
+                funParams.gapCloseParam.minTrackLen = 3; % Change the default for NewUtrack3DPackage, on 2020-11-25
             else
                 funParams.probDim = 2;
             end

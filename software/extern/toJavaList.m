@@ -16,7 +16,7 @@ function [javaList] = toJavaList(matlabList, varargin)
 %
 % See also: TOMATLABLIST
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

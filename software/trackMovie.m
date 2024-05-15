@@ -4,7 +4,7 @@ function trackMovie(processOrMovieData,varargin)
 % Sebastien Besson, 5/2011
 % Updated Andrew R. Jamieson Mar 2017
 %
-% Copyright (C) 2021, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
@@ -39,11 +39,29 @@ paramsIn=ip.Results.paramsIn;
 %Parse input, store in parameter structure
 p = parseProcessParams(trackProc, paramsIn);
 
+% precondition / error checking
+if isa(trackProc, 'TrackingDynROIProcess')
+%     If numel(buildDynROIProcId) > 1, popup window will show and let user to choose which BuildDynROIProcess. 
+%     Later, added in the setting GUI for user to select a BuildDynROIProcess, so comment out.
+%     buildDynROIProcId = movieData.getProcessIndex('BuildDynROIProcess');
+    if isempty(p.processBuildDynROI)
+        error("BuildDynROIProcess needs to be done and selected in setting before run TrackingDynROIProcess.")
+    elseif ~ismember(1, p.processBuildDynROI.funParams_.ChannelIndex)
+        error("Channel 1 in BuildDynROIProcess needs to be analyzed before run TrackingDynROIProcess.")
+    end
+end
+
 %% --------------- Initialization ---------------%%
 
 % Check detection process first
 if isempty(p.DetProcessIndex)
-    p.DetProcessIndex = movieData.getProcessIndex('DetectionProcess',1,1);
+    % show only relevant detection processes in the list selection dialog
+    % box for TrackingDynROIProcess. edit 2021-01-06
+    if isa(trackProc, 'TrackingDynROIProcess')
+        p.DetProcessIndex = movieData.getProcessIndex('PointSourceDetectionProcess3DDynROI',1,1);
+    else
+        p.DetProcessIndex = movieData.getProcessIndex('DetectionProcess',1,1);
+    end
 
     if isempty(p.DetProcessIndex)
         error(['Detection has not been run! '...
@@ -72,35 +90,49 @@ for i = p.ChannelIndex
     if p.saveResults.export
         outFilePaths{2,i} = [p.OutputDirectory filesep outFilename '_mat.mat'];
     end
+    if movieData.is3D && p.saveResults.exportTrackabilityData
+        outFilePaths{3,i} = [p.OutputDirectory filesep outFilename '_Trackability.mat'];
+    end
+
+    if movieData.is3D && (~isempty(p.processBuildDynROI))
+        outFilePaths{4,i} = [p.OutputDirectory filesep outFilename '_DynROIRef.mat'];
+    end
 end
-mkClrDir(p.OutputDirectory);
+mkClrDir(p.OutputDirectory,0);
 trackProc.setOutFilePaths(outFilePaths);
 
 
-%% --------------- Adding capability to select time range frames ---------------%%% 
 
-% use movieInfo to check start/end frames for tracking
-% then get rid of detected features in movieInfo outside this range
-if ~isempty(p.timeRange) && isequal(unique(size(p.timeRange)), [1 2])
-    nFrames = length(movieInfo);
-    if p.timeRange(1) <= p.timeRange(2) && p.timeRange(2) <= nFrames
-        startFrame = p.timeRange(1);
-        endFrame = p.timeRange(2);
-    else
-        startFrame = 1;
-        endFrame = nFrames;
-    end
-elseif ~isempty(p.timeRange)
-    error('--TrackingProcess: timeRange should be [startFrame endFrame] or [] for all frames')
-end
+
 
 %% --------------- Displacement field calculation ---------------%%% 
 
-disp('Starting tracking...')
+disp('::::')
+logMsg = @(chan) ['Tracking objects for channel ' ...
+                  num2str(chan) ' under:'];
+detDirs= detProc.outFilePaths_;
 
 for i = p.ChannelIndex
 
     movieInfo = detProc.loadChannelOutput(i);
+
+    %% --------------- Adding capability to select time range frames ---------------%%% 
+
+    % use movieInfo to check start/end frames for tracking
+    % then get rid of detected features in movieInfo outside this range
+    if ~isempty(p.timeRange) && isequal(unique(size(p.timeRange)), [1 2])
+        nFrames = length(movieInfo);
+        if p.timeRange(1) <= p.timeRange(2) && p.timeRange(2) <= nFrames
+            startFrame = p.timeRange(1);
+        endFrame = p.timeRange(2);
+    else
+        startFrame = 1;
+    endFrame = nFrames;
+    end
+    elseif ~isempty(p.timeRange)
+        error('--TrackingProcess: timeRange should be [startFrame endFrame] or [] for all frames')
+    end
+
 
     if ~isempty(p.timeRange)
         %% --------------- Adding capability to select time range frames ---------------%%% 
@@ -115,11 +147,88 @@ for i = p.ChannelIndex
         clear oldMovieInfo
         %% --------------- Adding capability to select time range frames ---------------%%% 
     end
-    
+
+    % If a dynROI specified, transform the coordinates accordingly
+    if movieData.is3D && (~isempty(p.processBuildDynROI))
+        if isa(p.processBuildDynROI, 'BuildDynROIProcess')
+            dynROICell=p.processBuildDynROI.loadChannelOutput(1); % iChan is mandatory input for BuildDynROIProcess.loadChannelOutput, BuildDynROIProcess used in package.
+        else
+            dynROICell=p.processBuildDynROI.loadChannelOutput(); % iChan is not mandatory input for BuilDynROI.loadChannelOutput
+        end
+        dynROI=dynROICell{1};
+        mappedDetections=dynROI.mapDetections(Detections(movieInfo));
+        ref=dynROI.getDefaultRef();
+        mappedDetectionsRef=ref.applyBase(mappedDetections);
+        mappedDetectionsRef.addOffset(1000,1000,1000);
+        movieInfo=mappedDetectionsRef.getStruct();
+    end
+
+    disp(logMsg(i))
+    disp(detDirs{1,i});
+    disp('Results will be saved under:')
+    disp(outFilePaths{1,i});
+
+
     % Call function - return tracksFinal for reuse in the export
     % feature
-    tracksFinal = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
+    if movieData.is3D
+        [tracksFinal,kalmanInfoLink,~,trackabilityData] = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
+            p.kalmanFunctions, p.probDim, 0, p.verbose,'estimateTrackability',p.EstimateTrackability);
+    else
+        tracksFinal = trackCloseGapsKalmanSparse(movieInfo, p.costMatrices, p.gapCloseParam,...
         p.kalmanFunctions, p.probDim, 0, p.verbose);
+    end
+    
+
+
+
+    if movieData.is3D && (~isempty(p.processBuildDynROI))
+        %% replace the trajectory with original detections
+        tracksFinalStripped=rmfield(tracksFinal,'tracksCoordAmpCG');
+        tracksOrigDetect=TracksHandle(tracksFinalStripped,mappedDetections.getStruct()); 
+        tracksFinal=tracksOrigDetect.getStruct()';
+
+        %% Transfrom lab ref back in the DynROI Ref (useful for the GUI)
+        if isa(p.processBuildDynROI, 'BuildDynROIProcess')
+            dynROICell=p.processBuildDynROI.loadChannelOutput(1); % iChan is mandatory input for BuildDynROIProcess.loadChannelOutput, BuildDynROIProcess used in package.
+        else
+            dynROICell=p.processBuildDynROI.loadChannelOutput(); % iChan is not mandatory input for BuilDynROI.loadChannelOutput
+        end
+        dynROI=dynROICell{1};
+        ref=dynROI.getDefaultRef();
+        tracksDynROIRef=ref.applyBase(tracksOrigDetect);
+        [BBmin,BBmax]=dynROI.getBoundingBox(ref);
+        tracksDynROIRef.addOffset(-BBmin(1)+1,-BBmin(2)+1,-BBmin(3)+1);
+        tracksFinalDynROIRef_oldFormat=tracksDynROIRef.getStruct();
+        save(outFilePaths{4,i},'tracksDynROIRef','tracksFinalDynROIRef_oldFormat');
+
+        if(p.EstimateTrackability)
+            %% Project debugging information back into lab ref 
+            samples=trackabilityData.samplesDetections.addOffset(-1000,-1000,-1000);
+            samples=ref.applyInvBase(samples);
+            trackabilityData.samplesDetections=samples;
+
+            samples=trackabilityData.predExpectation.addOffset(-1000,-1000,-1000);
+            samples=ref.applyInvBase(samples);
+            trackabilityData.predExpectation=samples;
+
+        end
+    end
+
+    if movieData.is3D && (p.EstimateTrackability)
+        %% Track segment mapping
+        segTrackability=cell(1,length(tracksFinal));
+        for tIdx=1:length(tracksFinal)
+            tr=TracksHandle(tracksFinal(tIdx));
+            nonGap=~tr.gapMask();
+            nonGap=nonGap(1:end-1);  % T-1 segments.
+            linkIdx=find(nonGap);
+            segTrackability{tIdx}=nan(size(nonGap));
+            segTrackability{tIdx}(linkIdx)=arrayfun(@(pIdx) trackabilityData.trackabilityCost{tr.f(pIdx)+1}(tr.tracksFeatIndxCG(pIdx)),linkIdx);
+        end
+        trackabilityData.segTrackability=segTrackability;
+    end
+    
     save(outFilePaths{1,i},'tracksFinal');
     
     % Optional export
@@ -133,6 +242,10 @@ for i = p.ChannelIndex
         end
         save(outFilePaths{2,i},'-struct','M');
         clear M;
+    end
+
+    if movieData.is3D && p.saveResults.exportTrackabilityData
+        save(outFilePaths{3,i},'trackabilityData');
     end
 end
 
