@@ -218,6 +218,7 @@ packageList = {
     'uSignal3DPackage'
     'InfoFlowPackage'
     'uSegmentPackage'
+    'uSegment3DPackage'
     };
 validPackage = cellfun(@(x) exist(x,'class')==8,packageList);
 packageList = packageList(validPackage);
