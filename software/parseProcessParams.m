@@ -47,6 +47,9 @@ function [paramOut,unrecParam] = parseProcessParams(procOb,paramIn,asCell)
 % Hunter Elliott
 % 5/2010
 %
+% Added 2024-08 by Qiongjing (Jenny) Zou:
+% Consider the case if field of funParams is also a structure.
+% If the parameter wasn't input, copy the default from the process.
 %
 % Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
@@ -101,6 +104,28 @@ for j = 1:nPar
         paramOut.(paramList{j}) = procOb.funParams_.(paramList{j});                    
     end        
 end
+
+% Added 2024-08 by Qiongjing (Jenny) Zou:
+% Consider the case if field of funParams is also a structure
+structFieldIndices = [];
+for i = 1:length(paramList)
+    if isstruct(procOb.funParams_.(paramList{i}))
+        structFieldIndices(end+1) = i;  % Save the index
+    end
+end
+for k = structFieldIndices
+    subParamList = fieldnames(procOb.funParams_.(paramList{k})); 
+    % paramList = fieldnames(procOb.funParams_);
+    nPar = numel(subParamList);
+    for j = 1:nPar
+        %If the parameter wasn't input, use the default from the process.
+        if ~isfield(paramOut.(paramList{k}),subParamList{j})
+            %Add this default value to the structure
+            paramOut.(paramList{k}).(subParamList{j}) = procOb.funParams_.(paramList{k}).(subParamList{j});
+        end
+    end
+end
+
 
 %If requested, pass the parameters which input but are NOT actual function
 %params
