@@ -115,7 +115,6 @@ for i = 1:length(paramList)
 end
 for k = structFieldIndices
     subParamList = fieldnames(procOb.funParams_.(paramList{k})); 
-    % paramList = fieldnames(procOb.funParams_);
     nPar = numel(subParamList);
     for j = 1:nPar
         %If the parameter wasn't input, use the default from the process.
