@@ -50,6 +50,7 @@ function [paramOut,unrecParam] = parseProcessParams(procOb,paramIn,asCell)
 % Added 2024-08 by Qiongjing (Jenny) Zou:
 % Consider the case if field of funParams is also a structure.
 % If the parameter wasn't input, copy the default from the process.
+% Also consider a field of funParams is also a 1 by n structure (n>=1).
 %
 % Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
@@ -113,14 +114,21 @@ for i = 1:length(paramList)
         structFieldIndices(end+1) = i;  % Save the index
     end
 end
-for k = structFieldIndices
-    subParamList = fieldnames(procOb.funParams_.(paramList{k})); 
-    nPar = numel(subParamList);
-    for j = 1:nPar
-        %If the parameter wasn't input, use the default from the process.
-        if ~isfield(paramOut.(paramList{k}),subParamList{j})
-            %Add this default value to the structure
-            paramOut.(paramList{k}).(subParamList{j}) = procOb.funParams_.(paramList{k}).(subParamList{j});
+for k = structFieldIndices   
+    % Consider a field of funParams is also a 1 by n structure (n>=1)
+    % Added 2024-8-20 by Qiongjing (Jenny) Zou
+    nStruct = numel(procOb.funParams_.(paramList{k}));
+    for s = 1:nStruct
+        subParamList = fieldnames(procOb.funParams_.(paramList{k})(s)); 
+        nPar = numel(subParamList);   
+        for j = 1:nPar
+            % If the parameter wasn't input, use the default from the process.
+            if ~isfield(paramOut.(paramList{k})(s), subParamList{j}) ...
+                    || (isempty(paramOut.(paramList{k})(s).(subParamList{j})) ...
+                    && ~isempty(procOb.funParams_.(paramList{k})(s).(subParamList{j})))
+                % Add this default value to the structure
+                paramOut.(paramList{k})(s).(subParamList{j}) = procOb.funParams_.(paramList{k})(s).(subParamList{j});
+            end
         end
     end
 end
