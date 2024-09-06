@@ -39,7 +39,7 @@ function plotCompTrack(trackedFeatureInfo,varargin)
 %       inOneFigure       : 1 if all plots appear in one figure window (one
 %                           above the other), 0 if each figure is in its
 %                           own window. Optional. Default: 1.
-%       plotAS   : 1 to plot particle aggregation state (if
+%       plotAS            : 1 to plot particle aggregation state (if
 %                           supplied), 0 otherwise. Optional. Default: 1.
 %       timeStep          : Time step for x-axis. Can be whatever units are
 %                           relevant. Optional. Default: 1.

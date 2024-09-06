@@ -40,7 +40,7 @@ function [probMotionType,motionChar,errFlag] = summarizeDiffAnRes(tracks,...
 %                    6-10 or 6-9&11 are in the not-linear category (6-10 are
 %                    used when asymmetry is checked for, 6-9&11 are used
 %                    when asymmetry is not checked for).
-%                    3rd column: Number of features per frame in each
+%                    3rd column: Number of particles per frame in each
 %                    motion category, same rows as first column.
 %       motionChar : Structure summarizing motion characteristics.
 %                    Contains the fields "linear" and "notLinear". 

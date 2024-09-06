@@ -65,9 +65,9 @@ function plotTracksDiffAnalysis2D(trackedFeatureInfo,diffAnalysisRes,timeRange,.
 %                           Optional. Default: 0.
 %       offset            : [dx,dy] that is to be added to the coordinates.
 %                           Optional. Default: [0,0]
-%
 %       hideUnclass       : 1 to not display any tracks shorter than 20
-%                           frames
+%                           frames.
+%                           Optional. Default: 0.
 %
 %OUTPUT The plot.
 %       Color coding:
@@ -358,12 +358,12 @@ if isfield(diffAnalysisRes,'classification') %output of trackDiffusionAnalysis1
         case {1,2}
             trackSegmentColor(indx,:) = repmat([1 0 0],length(indx),1);
     end
-    %random/unclassified + 2D immobile[0.5 0.3 0]
+    %random/unclassified + 2D immobile
     indx = find(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 0);
-    trackSegmentColor(indx,:) = repmat([0 0 0],length(indx),1);
+    trackSegmentColor(indx,:) = repmat([0.5 0.3 0],length(indx),1);
     %random/unclassified + 2D confined
     indx = find(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 1);
-    trackSegmentColor(indx,:) = repmat([0 0.5 0],length(indx),1);
+    trackSegmentColor(indx,:) = repmat([0 0 1],length(indx),1);
     %random/unclassified + 2D normal
     indx = find(trackSegmentType(:,1) ~= 1 & trackSegmentType(:,2) == 2);
     trackSegmentColor(indx,:) = repmat([0 1 1],length(indx),1);
