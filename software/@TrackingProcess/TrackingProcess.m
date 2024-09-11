@@ -87,6 +87,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
                                     'lifetime', ...
                                     'depth', ...
                                     'speed', ...
+                                    'meanSpeed', ... 
                                     'segmentTrackability', ...
                                     'meanTrackability'})));
             ip.addParameter('showTrackability',0);
@@ -130,7 +131,10 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
                 case 'depth'
                     trackLabel=arrayfun(@(t) nanmean(t.z),tracks);
                 case 'speed'
-                    trackLabel=arrayfun(@(t) ((t.x(2:end)-t.x(1:end-1)).^2+(t.y(2:end)-t.y(1:end-1)).^2+(t.z(2:end)-t.z(1:end-1)).^2).^0.5,tracks,'unif',0);
+                    trackLabel=arrayfun(@(t) ((t.x(2:end)-t.x(1:end-1)).^2+ ...
+                                              (t.y(2:end)-t.y(1:end-1)).^2+(t.z(2:end)-t.z(1:end-1)).^2).^0.5,tracks,'unif',0);
+                case 'meanSpeed'
+                    trackLabel=arrayfun(@(t) nanmean(((t.x(2:end)-t.x(1:end-1)).^2+(t.y(2:end)-t.y(1:end-1)).^2+(t.z(2:end)-t.z(1:end-1)).^2).^0.5),tracks,'unif',1);
                 case 'segmentTrackability'
                     tmp=load(obj.outFilePaths_{3,iChan}); 
                     trackabilityData=tmp.trackabilityData;
