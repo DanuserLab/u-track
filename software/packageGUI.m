@@ -353,15 +353,18 @@ if ~isequal(userData.packageName, 'XcorrFluctuationPackage')
     if ispc
         winopen(outputDir);
     elseif ismac
-        system(sprintf('open %s',regexptranslate('escape',outputDir)));
+        % system(sprintf('open %s',regexptranslate('escape',outputDir)));
+        system(sprintf('open %s',['"' outputDir '"'])); % ensures special characters i.e. - or spaces are handled correctly, edited by Qiongjing (Jenny) Zou, Oct 2024
     elseif isunix
-        status = system(sprintf('gio open "%s"',regexptranslate('escape',outputDir)));
+        % status = system(sprintf('gio open "%s"',regexptranslate('escape',outputDir)));
+        status = system(sprintf('gio open "%s"',['"' outputDir '"'])); % ensures special characters i.e. - or spaces are handled correctly, edited by Qiongjing (Jenny) Zou, Oct 2024
         % If a non-zero integer is returned, then display a message box
         if(status)
-            msgbox(sprintf('Results can be found under %s',regexptranslate('escape',outputDir)));
+            % msgbox(sprintf('Results can be found under %s',regexptranslate('escape',outputDir)));
+            msgbox(sprintf('Results can be found under %s \n\nHint: check the path, and special characters or spaces in the path',['"' outputDir '"']));
         end
     else
-        msgbox(sprintf('Results can be found under %s',regexptranslate('escape',outputDir)));
+        msgbox(sprintf('Results can be found under %s \n\nHint: check the path, and special characters or spaces in the path',['"' outputDir '"']));
         % SB: Following command not working under Ubuntu (as well as gnome-open
         % & nautilus)
         % system(sprintf('xdg-open %s',regexptranslate('escape',outputDir)));
