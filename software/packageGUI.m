@@ -138,10 +138,13 @@ userData.statusM(userData.id).Checked = userfcn_saveCheckbox(handles);
 
 % Set up new movie GUI parameters
 userData.id = mod(newMovieId-1,nMovies)+1;
-if isa(userData.crtPackage, 'XcorrFluctuationPackage')
+
+% Fixed error when switch between Movielists on PackageGUI for ML as input packages: - 2019 & 2024
+if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
     nMovieLists = length(userData.ML);
     userData.id = mod(newMovieId-1,nMovieLists)+1;
 end
+
 userData.crtPackage = userData.package(userData.id);
 set(handles.figure1, 'UserData', userData)
 set(handles.popupmenu_movie, 'Value', userData.id)
@@ -347,7 +350,9 @@ userData = get(handles.figure1, 'UserData');
 prop=get(hObject,'Tag');
 procID = str2double(prop(length('pushbutton_show_')+1:end));
 
-if ~isequal(userData.packageName, 'XcorrFluctuationPackage')
+% Modified the section below, so for ML as input packages, 
+% the Folder Icon (pushbutton_open) can call another GUI named folderViewer to open multiple result folders. - 2019 & 2024
+if ~any(cellfun(@(pkg) isequal(userData.packageName, pkg), inputMLPackageList()))
     % Use the OS-specific command to open result in exploration window
     outputDir = userData.crtPackage.processes_{procID}.funParams_.OutputDirectory;
     if ispc

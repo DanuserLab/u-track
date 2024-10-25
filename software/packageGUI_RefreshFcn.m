@@ -50,10 +50,14 @@ set(setupHandles,'Enable','on');
 
 % Set movie data path
 if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
-if isa(userData.crtPackage, 'XcorrFluctuationPackage')
+
+% Solved MLs' path not corretly displayed problem on packageGUI for ML input packages: - 2019 & 2024
+if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
     field = 'ML';
 end
-if isa(userData.crtPackage, 'FishATLASPackage')
+
+% Solved ImDs' path not corretly displayed problem on packageGUI for ImD input packages: - 2019 & 2024
+if any(cellfun(@(ImDpackList) isa(userData.crtPackage, ImDpackList), inputImDPackageList()))
     field = 'ImD';
 end
 
