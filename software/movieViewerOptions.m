@@ -529,9 +529,10 @@ end
 if ~isempty(clim)
     % set(handles.edit_cmin,'Enable','on','String',clim(1));
     % set(handles.edit_cmax,'Enable','on','String',clim(2));
+    % Jenny: update values of color limits sliders:
     set(handles.edit_cmin,'Enable','on','Value',clim(1));
     set(handles.edit_cmax,'Enable','on','Value',clim(2));
-    % Jenny added: set initial strings of text_cmin and text_cmax:
+    % Jenny added: update strings of text_cmin and text_cmax:
     set(handles.text_cmin,'Enable','on','String',num2str(clim(1)));
     set(handles.text_cmax,'Enable','on','String',num2str(clim(2)));
 end
