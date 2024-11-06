@@ -17,6 +17,7 @@ function optionsFig = movieViewerOptions(mainFig)
 %
 % Sebastien Besson, Nov 2012
 % Andrew R. Jamieson - Modified Feb 2017
+% Hillary Wong and Qiongjing (Jenny) Zou, added sliders for color limits. - Nov 2024.
 %
 % Copyright (C) 2024, Danuser Lab - UTSouthwestern 
 %
@@ -166,15 +167,25 @@ uicontrol(imagePanel,'Style','edit','Position',[130 hPosition 70 20],...
 hPosition=hPosition+30;
 uicontrol(imagePanel,'Style','text','Position',[20 hPosition-2 100 20],...
     'String','Color limits','HorizontalAlignment','left');
+
 % Hillary 10/27: Adding sliders for color range inputs
-uicontrol(imagePanel, 'Style','slider', 'Tag', 'edit_cmin', 'Position', [130 hPosition+4 70 20], 'Value', 0, 'Min', 0, 'Max', 1, 'Callback',@(h,event) setCLim(guidata(h)));
-uicontrol(imagePanel, 'Style','slider', 'Tag', 'edit_cmax', 'Position', [240 hPosition+4 70 20], 'Value', 1, 'Min', 0, 'Max', 1, 'Callback',@(h,event) setCLim(guidata(h)));
+% Jenny ensure the step is 0.01. Notes: did not use 'SliderStep', [0.01 0.01] here, 
+% b/c SliderStep applies to clicks on the arrows and trough, not to dragging the handle. 
+% Edited setCLim to take care of slider step from all behaviors.
+% Jenny: do not set Value here, initial clim and slider updates are set in setImageOptions.
+uicontrol(imagePanel, 'Style','slider', 'Tag', 'edit_cmin', 'Position', [130 hPosition+4 70 20], 'Min', 0, 'Max', 1, 'Callback',@(h,event) setCLim(guidata(h)));
+uicontrol(imagePanel, 'Style','slider', 'Tag', 'edit_cmax', 'Position', [240 hPosition+4 70 20], 'Min', 0, 'Max', 1, 'Callback',@(h,event) setCLim(guidata(h)));
 %uicontrol(imagePanel,'Style','edit','Position',[130 hPosition 70 20],...
     %'String','','BackgroundColor','white','Tag','edit_cmin',...
     %'Callback',@(h,event) setCLim(guidata(h)));
 %uicontrol(imagePanel,'Style','edit','Position',[200 hPosition 70 20],...
     %'String','','BackgroundColor','white','Tag','edit_cmax',...
     %'Callback',@(h,event) setCLim(guidata(h)));
+
+% Jenny: added text to display clim value from sliders, initial String and updates are set in setImageOptions.
+uicontrol('Style', 'text', 'Tag', 'text_cmin', 'String', '', 'Position', [210 237 40 20]);
+uicontrol('Style', 'text', 'Tag', 'text_cmax', 'String', '', 'Position', [320 237 40 20]);
+
 
 hPosition=hPosition+36;
 uicontrol(imagePanel,'Style','text','Position',[20 hPosition-2 80 20],...
@@ -400,16 +411,23 @@ hTimeStamp = plotTimeStamp(p.str,'Location',location);
 set(hTimeStamp,'Tag','timeStamp');
 
 function setCLim(handles)
-% display value of minimum range slider
-uicontrol("Style", 'text', "String", handles.edit_cmin.Value, "Position", [210 237 40 20])
 
-%range check
-clim=[get(handles.edit_cmin,'Value') ...
-    get(handles.edit_cmax,'Value')];
-uicontrol("Style", 'text', "String", handles.edit_cmax.Value, "Position", [320 237 40 20])
+% Get clim from sliders and ensure that minVal is less than maxVal - QZ Nov 2024:
+% Ensure minVal and maxVal have a step of 0.01
+minVal = round(get(handles.edit_cmin, 'Value') * 100) / 100;
+maxVal = round(get(handles.edit_cmax, 'Value') * 100) / 100;
+% Ensure that maxVal is at least 0.01
+maxVal = max(maxVal, 0.01);
+% Ensure that minVal is less than maxVal
+if minVal >= maxVal
+    minVal = max(0, maxVal - 0.01); % Ensure minVal stays >= 0
+end
+
+clim=[minVal maxVal];
+
 % clim=[str2double(get(handles.edit_cmin,'String')) ...
 %     str2double(get(handles.edit_cmax,'String'))];
-    
+
 userData = get(handles.figure1,'UserData');
 userData.redrawImageFcn(handles,'CLim',clim)
 
@@ -509,8 +527,13 @@ if isempty(clim)
     clim=get(hAxes,'Clim');
 end
 if ~isempty(clim)
-    set(handles.edit_cmin,'Enable','on','String',clim(1));
-    set(handles.edit_cmax,'Enable','on','String',clim(2));
+    % set(handles.edit_cmin,'Enable','on','String',clim(1));
+    % set(handles.edit_cmax,'Enable','on','String',clim(2));
+    set(handles.edit_cmin,'Enable','on','Value',clim(1));
+    set(handles.edit_cmax,'Enable','on','Value',clim(2));
+    % Jenny added: set initial strings of text_cmin and text_cmax:
+    set(handles.text_cmin,'Enable','on','String',num2str(clim(1)));
+    set(handles.text_cmax,'Enable','on','String',num2str(clim(2)));
 end
 
 set(handles.edit_imageScaleFactor, 'Enable', 'on',...
