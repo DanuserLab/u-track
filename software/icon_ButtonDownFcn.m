@@ -183,7 +183,7 @@ switch(className)
     case 'TransformationProcess'
         url = 'https://github.com/DanuserLab/u-probe/wiki/Transformation-Process-Description';
     case 'BleedthroughCorrectionProcess'
-        url = 'https://github.com/DanuserLab/u-probe/wiki/Bleedthrough-Crosstalk-Correction-Process-Description';
+        url = 'https://github.com/DanuserLab/u-probe/wiki/Bleedthrough-Correction-Process-Description';
     case 'RatioProcess'
         url = 'https://github.com/DanuserLab/u-probe/wiki/Ratioing-Process-Description';
     case 'PhotobleachCorrectionProcess'
