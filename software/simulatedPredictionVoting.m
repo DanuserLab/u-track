@@ -2,7 +2,7 @@ function [trackabilityCost,sampledPredictions,sampleLabel,votingLabel,trackabili
     predStat,costFunc,costMatParam,dynCostMatParam,varargin)
     %% Using normally distributed sampling to test the answer of the LAP for any given cost matrix.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

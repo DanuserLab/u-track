@@ -4,7 +4,7 @@ classdef HandleObject < handle
     %<name> = HandleObject(<thing-that-is-referred-to>). Access the 
     %underlying object by calling the <name>.Object property. 
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

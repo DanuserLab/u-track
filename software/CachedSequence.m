@@ -2,7 +2,7 @@ classdef CachedSequence < handle
 %% Simple cache interface for a XYCT sequences.
 %% Caching is very basic. Could be improved with advanced libraries.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

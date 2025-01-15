@@ -8,7 +8,7 @@ function numSegments = getNumSegmentsPerTrack(tracksFinal)
 %
 %Khuloud Jaqaman, 8 September 2009
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

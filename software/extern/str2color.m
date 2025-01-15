@@ -11,7 +11,7 @@
 %OUT:
 %   color - 1x3 truecolor (double in range [0,1]) RGB vector for the input.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

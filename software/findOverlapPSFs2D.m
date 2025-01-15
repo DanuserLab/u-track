@@ -24,7 +24,7 @@ function [clusters,errFlag] = findOverlapPSFs2D(cands,numPixelsX,numPixelsY,...
 %                         maximaPos.
 %       errFlag      : 0 if function executes normally, 1 otherwise.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

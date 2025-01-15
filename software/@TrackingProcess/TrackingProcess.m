@@ -7,7 +7,7 @@ classdef TrackingProcess < DataProcessingProcess & NonSingularProcess
     % Andrew R. Jamieson, Dec 2016, updated parameters for getDefaultGapClosingCostMatrices and GUI
     % Philippe Roudot added displayAll function, which is for results display in algorithm script, not used by the packages. 2018
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

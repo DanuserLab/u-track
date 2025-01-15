@@ -49,7 +49,7 @@ function analyzeMovieMotion(movieDataOrProcess,varargin)
 % Jesus Vega-Lugo, September 2023, Updated to allow the used of clean
 % tracks coming from refineTracksWithinMask
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

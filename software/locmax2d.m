@@ -15,7 +15,7 @@ function fImg = locmax2d(img, mask, keepFlat)
 %
 %    OUTPUT   fImg   image with local maxima (original values) and zeros elsewhere.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

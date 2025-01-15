@@ -1,7 +1,7 @@
 function [mask, dummy, imgLoG,imgLoGScaled,testMap] = pointSourceStochasticFiltering(vol, sigma, varargin)
 % P. Roudot 2016. Credit to F. Aguet 2013
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

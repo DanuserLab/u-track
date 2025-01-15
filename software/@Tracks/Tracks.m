@@ -59,7 +59,7 @@ classdef (Abstract = true) Tracks < handle  & matlab.mixin.Copyable
 % spouseSegment              : Segment into which the segment merged
 %                              NaN if the segment never merged
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

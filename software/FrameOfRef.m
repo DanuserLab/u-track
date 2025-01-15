@@ -16,7 +16,7 @@ classdef FrameOfRef < handle  & matlab.mixin.Copyable
       function obj=setZFromTrack(obj,tr)
          % Only the overlapping frame can be kept
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

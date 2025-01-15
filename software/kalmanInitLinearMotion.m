@@ -49,7 +49,7 @@ function [kalmanFilterInfo,errFlag] = kalmanInitLinearMotion(frameInfo,...
 %
 %Khuloud Jaqaman, March 2007
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

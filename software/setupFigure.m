@@ -17,7 +17,7 @@
 % Francois Aguet, 2013
 % Andrew R. Jamieson, 2016 - updated axes arrays to gobjects
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

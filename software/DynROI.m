@@ -23,7 +23,7 @@ classdef DynROI < hgsetget & matlab.mixin.Copyable & handle
         %% In a first version, the mask is built using the mapPosition function.
         %% Every pixel in the boundingbox is transformed as a position 
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

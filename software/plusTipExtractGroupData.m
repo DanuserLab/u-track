@@ -17,7 +17,7 @@ function [groupData]=plusTipExtractGroupData(groupList,varargin)
 %             (bl), growth displacement (gd), fgap displacement (fd), and
 %             bgap displacement (bd).
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

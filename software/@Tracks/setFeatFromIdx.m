@@ -1,7 +1,7 @@
 function [ obj ] = setFeatFromIdx( obj, movieInfo )
 %setFeatFromIdx Set features from idx of coordinates stored in movieInfo
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

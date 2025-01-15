@@ -4,7 +4,7 @@ classdef Detections <  handle  & matlab.mixin.Copyable & dynamicprops
     %
     % June 2018, Mark Kittisopikul implemented minimal 2D mode
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

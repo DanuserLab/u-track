@@ -40,7 +40,7 @@
 %
 % Example: [prmVect, prmStd, C, res, J] = fitGaussian3D(vol, [0 0 0 max(vol(:)) 1.5 min(vol(:))], 'xyzAsc');
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

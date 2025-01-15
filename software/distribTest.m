@@ -11,7 +11,7 @@ function [confValue]=distribTest(pop1,pop2)
 % thresh represent the confidence that the two populations are in fact
 % different.
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

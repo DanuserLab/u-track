@@ -94,7 +94,7 @@ function [trackedFeatureIndx,trackedFeatureInfo,kalmanFilterInfo,...
 % "costMatRandomDirectedSwitchingMotionLink" as a handle, instead of calling it through 
 % an eval statement. Writing to force UNIX encoding. 
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

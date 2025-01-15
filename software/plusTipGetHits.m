@@ -20,7 +20,7 @@ function [hits1 hits2] = plusTipGetHits(groupData,saveDir,stringency,testID1,tes
 % Maria Bagonis, April 2011
 % Sebastien Besson, July 2011
 %
-% Copyright (C) 2024, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
