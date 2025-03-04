@@ -42,6 +42,7 @@ function ImDpackList = inputImDPackageList()
     % Define the list of available packages
     ImDpackList = {
         'FishATLASPackage', ...
+        'FishATLAS2Package', ...
         % Add new packages here
     };
 end

@@ -1,6 +1,8 @@
 function checkallChannels_Callback(hObject, eventdata, handles)
 
 % Retrieve available channels properties
+%Hillary: checked if listbox_availableChannels is AppDesigner object and
+%extracted properties appropriately if it was or not.
 %
 % Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
@@ -20,7 +22,12 @@ function checkallChannels_Callback(hObject, eventdata, handles)
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-availableProps = get(handles.listbox_availableChannels, {'String','UserData'});
+if isa(handles.listbox_availableChannels, 'matlab.ui.control.ListBox')
+    availableProps = {handles.listbox_availableChannels.Items' [1:numel(handles.listbox_availableChannels.Items)]};
+else
+    availableProps = get(handles.listbox_availableChannels, {'String', 'UserData'});
+end
+
 if isempty(availableProps{1}), return; end
 
 % Update selected channels

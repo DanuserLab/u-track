@@ -190,13 +190,21 @@ funParams = userData.crtProc.funParams_;
 
 % Set up available input channels
 if isfield(userData, 'MD')
-set(handles.listbox_availableChannels,'String',userData.MD.getChannelPaths(), ...
-    'UserData',1:numel(userData.MD.channels_));
-
+    if isa(handles.listbox_availableChannels, 'matlab.ui.control.ListBox')
+        handles.listbox_availableChannels.Items = userData.MD.getChannelPaths();
+    else %check if listbox_availabelChannels was converted from GUIDE
+        set(handles.listbox_availableChannels,'String',userData.MD.getChannelPaths(), ...
+            'UserData',1:numel(userData.MD.channels_));
+    end
+    
 channelIndex = funParams.ChannelIndex;
 elseif isfield(userData, 'ImD')
-set(handles.listbox_availableChannels,'String',userData.ImD.getImFolderPaths(), ...
-    'UserData',1:numel(userData.ImD.imFolders_));
+    if isa(handles.listbox_availableChannels, 'matlab.ui.control.ListBox')
+        handles.listbox_availableChannels.Items = userData.ImD.getImFolderPaths();
+    else
+        set(handles.listbox_availableChannels,'String',userData.ImD.getImFolderPaths(), ...
+            'UserData',1:numel(userData.ImD.imFolders_));
+    end
 
 channelIndex = funParams.ImFolderIndex;
 end

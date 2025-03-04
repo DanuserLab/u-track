@@ -619,7 +619,7 @@ function checkbox_tagName_Callback(hObject, eventdata, handles)
 % handles.processTagLabels = findall(0,'-regexp','Tag', 'processTagLabel');
 % handles.processTagLabels;
 
-%% TODO - need refresh of tags after runnings. from Andrew J. 2018 - DONE by Qiongjing (Jenny) Zou in packageGUI_RefreshFcn.m in Dec 2024
+%% TODO - need refresh of tags after runnings
 
 if handles.checkbox_tagName.Value == 0;
     set(handles.processTagLabels, 'Visible', 'off')

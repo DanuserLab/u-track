@@ -1,6 +1,10 @@
 function selectChannel_Callback(hObject, eventdata, handles)
 
 % Retrieve  channels properties
+%availableProps = get(handles.listbox_availableChannels, {'String','UserData','Value'});
+%availableProps = {handles.listbox_availableChannels.Items' [1:numel(handles.listbox_availableChannels.Items)] [handles.listbox_availableChannels.Value]};
+%selectedProps = get(handles.listbox_selectedChannels, {'String','UserData'});
+%selectedProps = {handles.listbox_selectedChannels.String [find(ismember(handles.listbox_availableChannels.Items, handles.listbox_selectedChannels.String))]};
 %
 % Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
@@ -20,10 +24,22 @@ function selectChannel_Callback(hObject, eventdata, handles)
 % along with u-track.  If not, see <http://www.gnu.org/licenses/>.
 % 
 % 
-availableProps = get(handles.listbox_availableChannels, {'String','UserData','Value'});
-selectedProps = get(handles.listbox_selectedChannels, {'String','UserData'});
 
-% Find new elements and set them to the selected listbox
+% Hillary Wong 3/25/2024: modified how availableProps and selectedProps
+% are initialized because the class of the handles listboxchannels were converted to different class after migrating to appdesigner. 
+% set them to the selected listbox
+if (isa(handles.listbox_availableChannels,'matlab.ui.control.ListBox'))
+    availableProps = {handles.listbox_availableChannels.Items' [1:numel(handles.listbox_availableChannels.Items)] [handles.listbox_availableChannels.ValueIndex]};
+else
+    availableProps = get(handles.listbox_availableChannels, {'String', 'UserData', 'Value'});
+end
+
+if ~isa(handles.listbox_selectedChannels,'matlab.ui.control.ListBox')
+    selectedProps = get(handles.listbox_selectedChannels, {'String', 'UserData'});
+else
+    selectedProps = {handles.listbox_selectedChannels.String [find(ismember(handles.listbox_availableChannels.String, handles.listbox_selectedChannels.String))]};
+end
+
 newID = availableProps{3}(~ismember(availableProps{1}(availableProps{3}),selectedProps{1}));
 selectedChannels = horzcat(selectedProps{1}',availableProps{1}(newID)');
 selectedData = horzcat(selectedProps{2}, availableProps{2}(newID));

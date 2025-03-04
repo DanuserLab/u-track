@@ -11,9 +11,6 @@ function packageGUI_RefreshFcn(handles, type)
 % Chuangang Ren 08/2010
 % Sebastien Besson (last modified Nov 2011)
 %
-% Added: Refresh processes checkbox string (Steps' names) and Process Tags
-% by Qiongjing (Jenny) Zou, Dec 2024.
-%
 % Copyright (C) 2025, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
@@ -119,32 +116,6 @@ set(setupHandles(~checkedProc),'Value',0);
 set(setupHandles(checkedProc),'Value',1);
 arrayfun(@(i) userfcn_lampSwitch(i,1,handles),...
     find(checkedProc | setupProc | successProc));
-
-% Refresh processes checkbox string (Steps' names) and Process Tags
-% added by Qiongjing (Jenny) Zou, Dec 2024.
-for i = 1 : nProc
-    processClassName = userData.crtPackage.getProcessClassNames{i};
-    try
-        processName = userData.crtPackage.processes_{i}.name_;
-    catch err
-        processName=eval([processClassName '.getName']);
-    end
-    checkboxString = [' Step ' num2str(i) ': ' processName];
-    if ~isequal(checkboxString, get(handles.(sprintf('checkbox_%d', i)), 'String'))
-        set(handles.(sprintf('checkbox_%d', i)),'String',checkboxString)
-    end
-
-    if ~isempty(userData.crtPackage.processes_{i}) ...
-            && isprop(userData.crtPackage.processes_{i}, 'tag_') && ~isempty(userData.crtPackage.processes_{i}.tag_)
-        processTagLabelString = ['[' userData.crtPackage.processes_{i}.tag_ ']'];
-    else
-        processTagLabelString = '{no tag}';
-    end
-    if ~isequal(processTagLabelString, get(handles.(sprintf('processTagLabel_%d', i)), 'String'))
-        set(handles.(sprintf('processTagLabel_%d', i)),'String',processTagLabelString)
-    end
-end
-
 
 % Checkbox enable/disable set up
 k= successProc | checkedProc;
