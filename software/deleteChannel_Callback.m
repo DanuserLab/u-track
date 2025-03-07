@@ -23,17 +23,10 @@ function deleteChannel_Callback(hObject, eventdata, handles)
 
 % Get selected properties and returin if empty
 selectedProps = get(handles.listbox_selectedChannels, {'String','UserData','Value'});
-%selectedProps = {handles.listbox_selectedChannels.Items [find(ismember(handles.listbox_availableChannels.String, handles.listbox_selectedChannels.String))]};
 if isempty(selectedProps{1}) || isempty(selectedProps{3}),return; end
 
 % Delete selected item
-%Jenny & Hillary: Debug edits on line below, changed from [] to {''}
-selectedProps{1}(selectedProps{3}) = {''};
-%selectedProps{2}(selectedProps{3}) = [ ];
-%Hillary: Edited so index to be deleted from selectedProps{2} corresponds
-%to value in selectedProps{3}
-selectedProps{2}(find(selectedProps{2}==selectedProps{3})) = [];
-% remove empty values from selectedProps{1}
-selectedProps{1}(cellfun('isempty', selectedProps{1})) = [];
+selectedProps{1}(selectedProps{3}) = [ ];
+selectedProps{2}(selectedProps{3}) = [ ];
 set(handles.listbox_selectedChannels, 'String', selectedProps{1},'UserData',selectedProps{2},...
     'Value',max(1,min(selectedProps{3},numel(selectedProps{1}))));
