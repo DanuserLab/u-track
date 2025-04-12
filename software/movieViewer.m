@@ -591,10 +591,13 @@ if ~isempty(i) && ~isempty(h) && isequal(h.Style, 'checkbox') && isequal(imagePa
             setRadioButtonForSpecialProcess(validProcId, 'BuildDynROIProcess', validProc, mainFig, h, 2);
 
         case {'ThresholdProcess', 'MultiScaleAutoSegmentationProcess', 'ExternalSegmentationProcess', ...
-                'BackgroundMasksProcess', 'MaskRefinementProcess', 'MaskIntersectionProcess'}
+                'BackgroundMasksProcess', 'MaskRefinementProcess', 'MaskIntersectionProcess', ...
+                'TremblingCorrectionProcess', 'ProtrusionProcess', 'WindowingProcess'}
             % For BiosensorsPackage (u-probe) (MD.packages_ can be empty), if step 3 CropShadeCorrectROIProcess is done,
             % and procId was assigned to step 4-6 and MaskIntersectionProcess on Overlay panel,
             % then change selected radiobutton on Image panel to CropShadeCorrectROIProcess (output 1)
+            % Same thing for WindowingPackage (u-register), if CropShadeCorrectROIProcess in u-probe is done, and step 2-6
+            % should display overlay on CropShadeCorrectROIProcess.
             if any(cellfun(@(x) isa(x, 'CropShadeCorrectROIProcess'), validProc{i}.processTree_))
                 setRadioButtonForSpecialProcess(validProcId, 'CropShadeCorrectROIProcess', validProc, mainFig, h, 1);
             end
