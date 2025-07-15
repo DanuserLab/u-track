@@ -317,10 +317,6 @@ for i = 1:numel(p.ChannelIndex)
                     otherwise
                 end
             
-            case {'pointSourceLM','pointSourceAutoSigmaLM'}
-                [pstruct, mask, imgLM] = pointSourceDetection3D(vol, sigmasPSF, detP_pf);
-                lab = uint8(mask); 
-                movieInfo(frameIdx) = pointCloudToMovieInfo(imgLM,vol); 
             case {'pointSourceAutoSigmaMixture'}
                 detPt = detP_pf;
                 detPt.FitMixtures = true;
@@ -369,13 +365,6 @@ for i = 1:numel(p.ChannelIndex)
                 [pstruct,mask,imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
                 movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
                 lab = uint8(mask); % adjust label
-                
-            case {'pointSourceAutoSigmaFitSig'}
-                    detPt = detP_pf;
-                    detPt.Mode = 'xyzAcsr';
-                    [pstruct,mask,imgLM] = pointSourceDetection3D(vol,sigmasPSF,detPt);
-                    movieInfo(frameIdx) = pstructToMovieInfo(pstruct);
-                        lab = uint8(mask); % adjust label                
 
             % ----------------------------------------------------------------------------------------
             case 'watershedApplegate'
@@ -464,7 +453,7 @@ for i = 1:numel(p.ChannelIndex)
     end
 
 
-    save(outFilePaths{1,iChan}, 'movieInfo','debugPos','labelSegPos');
+    save(outFilePaths{1,iChan}, 'movieInfo','debugPos','labelSegPos', '-v7.3');
 
     if(~isempty(detP.processBuildDynROI))             
         tmp=detP.processBuildDynROI.loadFileOrCache(); % try initDynROIs
