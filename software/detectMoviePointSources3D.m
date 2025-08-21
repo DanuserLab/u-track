@@ -161,6 +161,7 @@ for i = p.ChannelIndex;
     if ~isempty(p.processBuildDynROI)
         outFilePaths{2,i} = [p.OutputDirectory filesep 'channel_DynROIRef' num2str(i) '.mat'];
     end
+    outFilePaths{3,i} = [p.OutputDirectory filesep 'channel_' num2str(i) '_detections.csv']; % saved movieInfo in channel_N.mat to a csv format for Napari. - 2025-8
 end
 mkClrDir(p.OutputDirectory,0);
 pointSourceDetProc3D.setOutFilePaths(outFilePaths);
@@ -466,6 +467,9 @@ for i = 1:numel(p.ChannelIndex)
         save(outFilePaths{2,iChan}, 'movieInfoDynROIRef');
     end
     
+    % exports the detection events (movieInfo) into a format (csv) that is compatible with napari. - added 2025-8
+    napariWriteDetections(movieInfo, outFilePaths{3,iChan});
+    
 %     clear movieInfo detectionLabRef;
     clear movieInfo;
 
@@ -723,3 +727,46 @@ function testDynROIOverlay(dynROI,croppedVol,vol,rawMovieInfo,movieInfo,frameIdx
     hold(H,'on');
     scatter(H,Z,X,100,'r','linewidth',2);
     hold(H,'off')  
+
+
+
+function napariWriteDetections(movieInfo, savePath)
+    % export the detection events into a format that is compatible with napari
+    % written by Kevin Dean edited by Qiongjing (Jenny) Zou, 2025-8
+    detections=movieInfo;
+
+    % Pre‑allocate containers
+    points   = [];   % will hold [t  z  y  x] (note the order → Napari expects z,y,x)
+    amp_all  = [];   % amplitude feature
+    int_all  = [];   % intensity feature
+
+    for t = 1:numel(detections)
+        % Extract first column
+        x   = detections(t).xCoord(:,1);
+        y   = detections(t).yCoord(:,1);
+        z   = detections(t).zCoord(:,1);
+        amp = detections(t).amp   (:,1);
+        inten=detections(t).int   (:,1);
+
+        % Keep rows where all spatial coords exist
+        valid = ~(isnan(x) | isnan(y) | isnan(z));
+        x = x(valid);  y = y(valid);  z = z(valid);
+        amp = amp(valid);  inten = inten(valid);
+
+        % Build [t  z  y  x]  (time is 0‑based for Napari)
+        n   = numel(x);
+        pts = [repmat(t-1,n,1) , z , y , x];
+
+        % Accumulate
+        points  = [points ; pts];
+        amp_all = [amp_all ; amp];
+        int_all = [int_all ; inten];
+    end
+
+    % Assemble a table for convenient I/O
+    T = table(points(:,1),points(:,2),points(:,3),points(:,4), ...
+        amp_all,int_all, ...
+        'VariableNames',{'t','z','y','x','amp','int'});
+
+    % Write to disk
+    writetable(T,savePath);   % creates header row automatically
