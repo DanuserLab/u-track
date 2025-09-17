@@ -4,6 +4,8 @@
 
 u-track is a multiple-particle tracking MATLAB software that is designed to (1) track dense particle fields, (2) close gaps in particle trajectories resulting from detection failure, and (3) capture particle merging and splitting events resulting from occlusion or genuine aggregation and dissociation events. Its core is based on formulating correspondence problems as linear assignment problems and searching for a globally optimal solution.
 
+📺 Tutorial video: [How to Run u-track (YouTube)](https://youtu.be/dPTc4du7iqY?si=RZ3YK1c8vTeHbybN)
+
 - Version 2.5 adds support for running on Mac with Apple silicon chips (tested on MacBook M4 Pro using MATLAB 2024b and GSL 2.8).
 - Version 2.4 "Movie selection" graphic user interface has been renamed to "u-quantify", user can use the new Matlab command `u_quantify` to launch the GUI and start to run u-track.
 - Version 2.3 runs much faster on large/long movies (improvements made by Carmen Klein Herenbrink and Brian Devree; reference coming soon).
