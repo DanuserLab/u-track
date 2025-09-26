@@ -1026,7 +1026,29 @@ if any(ismember(algoType,{'watershedApplegateAuto', ...
     children = get(handles.uipanel_pointSource,'Children');
     set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
     children = get(handles.uipanel_water,'Children');
-    set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','on');
+
+    if isequal(algoType,'watershedApplegate')
+        set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','on');
+    end
+
+    if isequal(algoType,'watershedApplegateAuto')
+        set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','on');
+        set(handles.text53, 'enable', 'off');
+        set(handles.edit_waterThresh, 'enable', 'off');
+    end
+
+    if isequal(algoType,'bandPassWatershed')
+        set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','on');
+        set(handles.text54, 'enable', 'off');
+        set(handles.edit_waterStep, 'enable', 'off');
+    end
+    
+    if any(ismember(algoType,{'watershedMatlab',...
+            'markedWatershed'}))
+        set(children(strcmpi ( get (children,'Type'),'UIControl')),'enable','off');
+        set(handles.text53, 'enable', 'on');
+        set(handles.edit_waterThresh, 'enable', 'on');
+    end
     
 elseif any(ismember(algoType,{'pointSourceLM',...
                               'pointSource',...
