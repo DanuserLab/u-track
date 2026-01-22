@@ -20,7 +20,7 @@ function optionsFig = movieViewerOptions(mainFig)
 % Hillary Wong and Qiongjing (Jenny) Zou, added sliders for color limits. - Nov 2024. - Does not work if clim is not 0-1
 % Qiongjing (Jenny) Zou, Rewrote adding sliders for color limits. Kept text boxes for color limits. Works for clim is any range. - April 2025
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

@@ -39,7 +39,7 @@ function thresholdValue = thresholdFluorescenceImage(imageIn,showPlots,noisy)
 %Hunter Elliott, 11/7/08
 %
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

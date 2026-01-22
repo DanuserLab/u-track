@@ -2,7 +2,7 @@ function [ varargout ] = aliveMask( obj )
 %aliveMask creates a binary mask of when the segments in the compound track
 %are active
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

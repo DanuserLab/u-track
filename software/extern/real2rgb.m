@@ -44,7 +44,7 @@
 %          given.
 %   map - 256x3 colormap similar to that used to generate B.
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

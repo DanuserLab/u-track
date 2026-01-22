@@ -8,7 +8,7 @@ classdef FileCacheWithIndexing < cached.FileCache
 %
 % See also cached.FileCache
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 

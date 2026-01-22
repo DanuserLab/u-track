@@ -25,7 +25,7 @@ for k = ks
 %     xDiff{j} = fullTrack(:,k)-fullTrack(:,k-8);
 %     yDiff{j} = fullTrack(:,k+1)-fullTrack(:,k-7);
 %
-% Copyright (C) 2025, Danuser Lab - UTSouthwestern 
+% Copyright (C) 2026, Danuser Lab - UTSouthwestern 
 %
 % This file is part of u-track.
 % 
