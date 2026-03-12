@@ -213,7 +213,7 @@ packageList = {
     'Morphology3DPackage'
     'XcorrFluctuationPackage'
     'NewUTrack3DPackage'
-    % 'FishATLASPackage'
+    'NewFishATLASPackage'
     'GrangerCausalityAnalysisPackage'
     'uSignal3DPackage'
     'InfoFlowPackage'
