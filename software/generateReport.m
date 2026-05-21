@@ -46,6 +46,9 @@ for i = errorMovies(:)'
     elseif isempty(userData.MD) && ~isempty(userData.ImD)
         field = 'ImD';
         type = 'ImageData';
+    elseif isfield(userData, 'ImL') && ~isempty(userData.ImL)
+        field = 'ImL';
+        type = 'Image list';
     else
         field = 'ML';
         type = 'Movie list'; 
