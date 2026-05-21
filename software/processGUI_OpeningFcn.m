@@ -8,6 +8,7 @@ function processGUI_OpeningFcn(hObject, eventdata, handles, string,varargin)
 %       userData.MD - current MovieData array
 %       userData.ML - current MovieList array
 %       userData.ImD - current ImageData array
+%       userData.ImL - current ImageList array
 %       userData.crtProc - current process
 %       userData.crtPackage - current package
 %       userData.crtProcClassName - current process class
@@ -78,6 +79,8 @@ if strcmp(userData.crtPackage.getMovieClass(), 'MovieData')
     userData.MD = userData_main.MD(userData_main.id);
 elseif strcmp(userData.crtPackage.getMovieClass(), 'ImageData')
     userData.ImD = userData_main.ImD(userData_main.id);
+elseif strcmp(userData.crtPackage.getMovieClass(), 'ImageList')
+    userData.ImL = userData_main.ImL(userData_main.id);
 else
     userData.ML = userData_main.ML(userData_main.id);
 end
@@ -125,6 +128,9 @@ if isempty(userData.crtProc)
         elseif strcmp(movieClass,'ImageData')
             userData.crtProc = userData.procConstr(userData.ImD, ...
                 userData.crtPackage.outputDirectory_);
+        elseif strcmp(movieClass,'ImageList')
+            userData.crtProc = userData.procConstr(userData.ImL, ...
+                userData.crtPackage.outputDirectory_);
         else
             userData.crtProc = userData.procConstr(userData.ML, ...
                 userData.crtPackage.outputDirectory_);
@@ -139,7 +145,8 @@ end
 % Check for multiple movies else
 % Modified the section below to make sure checkbox(Apply Check/Uncheck to All Movies) work properly for ML input packages as well. - 2019 & 2024
 if isfield(handles,'checkbox_applytoall')
-    if ~any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
+    if ~any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList())) ...
+            && ~any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
         if ~isempty(userData_main.MD) && isempty(userData_main.ImD)
             if numel(userData_main.MD) ==1
                 set(handles.checkbox_applytoall,'Value',0,'Visible','off');
@@ -154,6 +161,13 @@ if isfield(handles,'checkbox_applytoall')
                 set(handles.checkbox_applytoall, 'Value',...
                     userData_main.applytoall(userData.procID));
             end
+        end
+    elseif any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+        if numel(userData_main.ImL) ==1
+            set(handles.checkbox_applytoall,'Value',0,'Visible','off');
+        else
+            set(handles.checkbox_applytoall, 'Value',...
+                userData_main.applytoall(userData.procID));
         end
     else
         if numel(userData_main.ML) ==1
@@ -199,6 +213,12 @@ set(handles.listbox_availableChannels,'String',userData.ImD.getImFolderPaths(), 
     'UserData',1:numel(userData.ImD.imFolders_));
 
 channelIndex = funParams.ImFolderIndex;
+elseif isfield(userData, 'ImL')
+sampleImD = userData.ImL.getImage(1);
+set(handles.listbox_availableChannels,'String',sampleImD.getImFolderPaths(), ...
+    'UserData',1:numel(sampleImD.imFolders_));
+
+channelIndex = funParams.ImFolderIndex;
 end
 % Find any parent process
 parentProc = userData.crtPackage.getParent(userData.procID);
@@ -207,9 +227,13 @@ if isempty(userData.crtPackage.processes_{userData.procID}) && ~isempty(parentPr
     emptyParentProc = any(cellfun(@isempty,userData.crtPackage.processes_(parentProc)));
     if ~emptyParentProc
         % Intersect channel index with channel index of parent processes
-        parentChannelIndex = @(x) userData.crtPackage.processes_{x}.funParams_.ChannelIndex;
         for i = parentProc
-            channelIndex = intersect(channelIndex,parentChannelIndex(i));
+            if isfield(userData.crtPackage.processes_{i}.funParams_, 'ChannelIndex')
+                parentChannelIndex = userData.crtPackage.processes_{i}.funParams_.ChannelIndex;
+            else
+                parentChannelIndex = userData.crtPackage.processes_{i}.funParams_.ImFolderIndex;
+            end
+            channelIndex = intersect(channelIndex,parentChannelIndex);
         end
     end
 end
@@ -219,6 +243,9 @@ if ~isempty(channelIndex)
     channelString = userData.MD.getChannelPaths(channelIndex);
     elseif isfield(userData, 'ImD')
         channelString = userData.ImD.getImFolderPaths(channelIndex);
+    elseif isfield(userData, 'ImL')
+        sampleImD = userData.ImL.getImage(1);
+        channelString = sampleImD.getImFolderPaths(channelIndex);
     end
 else
     channelString = {};

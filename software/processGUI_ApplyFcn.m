@@ -55,6 +55,8 @@ elseif isfield(userData,'ML');
     field = 'ML';
 elseif isfield(userData,'ImD');
     field = 'ImD';
+elseif isfield(userData,'ImL');
+    field = 'ImL';
 else
     error('Missing movie');
 end

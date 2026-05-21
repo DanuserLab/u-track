@@ -91,6 +91,7 @@ ip.addParameter('packageName','',@ischar);
 ip.addParameter('MD', MovieData.empty(1,0) ,@(x) isempty(x) || isa(x,'MovieData'));
 ip.addParameter('ML', MovieList.empty(1,0), @(x) isempty(x) || isa(x,'MovieList'));
 ip.addParameter('ImD', ImageData.empty(1,0) ,@(x) isempty(x) || isa(x,'ImageData'));
+ip.addParameter('ImL', ImageList.empty(1,0) ,@(x) isempty(x) || isa(x,'ImageList'));
 ip.addParameter('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
 ip.parse(hObject,eventdata,handles,varargin{:});
 
@@ -105,6 +106,7 @@ handles.output = hObject;
 userData.MD = MovieData.empty(1,0);
 userData.ML = MovieList.empty(1,0);
 userData.ImD = ImageData.empty(1,0);
+userData.ImL = ImageList.empty(1,0);
 userData.userDir = pwd;
 userData.newFig=-1;
 userData.msgboxGUI=-1;
@@ -184,6 +186,10 @@ userData.ML = userData.ML(sort(index));
 [~,index] = unique(arrayfun(@getFullPath,userData.ImD,'Unif',0));
 userData.ImD = userData.ImD(sort(index));
 
+% Filter image lists to get a unique list
+[~,index] = unique(arrayfun(@getFullPath,userData.ImL,'Unif',0));
+userData.ImL = userData.ImL(sort(index));
+
 supermap(1,:) = get(hObject,'color');
 
 userData.colormap = supermap;
@@ -261,6 +267,9 @@ elseif strcmp(class, 'MovieData')
 elseif strcmp(class, 'ImageData')
     type = 'imageData';
     field = 'ImD'; 
+elseif strcmp(class, 'ImageList')
+    type = 'image list';
+    field = 'ImL';
 end
   
 if isempty(userData.(field))
@@ -270,7 +279,7 @@ end
 
 close(handles.figure1);
 packageGUI(selectedPackage,userData.(field),...
-    'MD', userData.MD, 'ML', userData.ML, 'ImD', userData.ImD, 'cluster', uTrackParCluster);
+    'MD', userData.MD, 'ML', userData.ML, 'ImD', userData.ImD, 'ImL', userData.ImL, 'cluster', uTrackParCluster);
 
 % --- Executes on selection change in listbox_movie.
 function listbox_movie_Callback(hObject, eventdata, handles)
@@ -313,7 +322,7 @@ set(handles.figure1,'UserData',userData);
 function pushbutton_delete_Callback(hObject, eventdata, handles)
 
 userData = get(handles.figure1, 'Userdata');
-if isempty(userData.MD) && isempty(userData.ImD), return;end
+if isempty(userData.MD) && isempty(userData.ImD) && isempty(userData.ImL), return;end
 
 % Delete channel object
 num = get(handles.listbox_movie,'Value');
@@ -425,31 +434,58 @@ if any(strcmp([pathname filename], movieListPaths))
 end
 
 try
+    listObject = load([pathname filename]);
+    isImageList = isfield(listObject, 'ImL');
     % Add option for user to choose to do sanityCheck or not (updated 2019-04)
     if get(handles.checkbox_sanityCheckML, 'Value') == 1
-        ML = MovieList.load([pathname filename]);
+        if isImageList
+            ImL = ImageList.load([pathname filename]);
+        else
+            ML = MovieList.load([pathname filename]);
+        end
     else
-        ML = MovieList.loadMatFile([pathname filename]);
+        if isImageList
+            ImL = ImageList.loadMatFile([pathname filename]);
+        else
+            ML = MovieList.loadMatFile([pathname filename]);
+        end
     end
 catch ME
     msg = sprintf('Movie: %s\n\nError: %s\n\nMovie is not successfully loaded. Please refer to movie detail and adjust your data.', [pathname filename],ME.message);
     errordlg(msg, 'Movie error','modal');
     return
 end
-% Find duplicate movie data in list box
-movieDataFile = ML.movieDataFile_;
-index = 1: length(movieDataFile);
-movieList=get(handles.listbox_movie,'String');
-index = index(~ismember(movieDataFile,movieList));
+if isImageList
+    % Find duplicate image data in list box
+    imageDataFile = ImL.imageDataFile_;
+    index = 1: length(imageDataFile);
+    imageList=get(handles.listbox_movie,'String');
+    index = index(~ismember(imageDataFile,imageList));
 
-if isempty(index)
-    msg = sprintf('All movies in movie list file %s have already been added to the list of movies.', ML.movieListFileName_);
-    warndlg(msg,'Warning','modal');
+    if isempty(index)
+        msg = sprintf('All images in image list file %s have already been added to the list of images.', ImL.imageListFileName_);
+        warndlg(msg,'Warning','modal');
+    end
+
+    % Healthy image list
+    userData.ImL = horzcat(userData.ImL, ImL);
+    userData.ImD = horzcat(userData.ImD,ImL.getImages{index});
+else
+    % Find duplicate movie data in list box
+    movieDataFile = ML.movieDataFile_;
+    index = 1: length(movieDataFile);
+    movieList=get(handles.listbox_movie,'String');
+    index = index(~ismember(movieDataFile,movieList));
+
+    if isempty(index)
+        msg = sprintf('All movies in movie list file %s have already been added to the list of movies.', ML.movieListFileName_);
+        warndlg(msg,'Warning','modal');
+    end
+
+    % Healthy movie list
+    userData.ML = horzcat(userData.ML, ML);
+    userData.MD = horzcat(userData.MD,ML.getMovies{index});
 end
-
-% Healthy movie list
-userData.ML = horzcat(userData.ML, ML);
-userData.MD = horzcat(userData.MD,ML.getMovies{index});
 
 % Refresh movie list box in movie selector panel
 set(handles.figure1, 'UserData', userData);
@@ -492,6 +528,7 @@ if strcmpi('no', user_response), return; end
 userData.MD = MovieData.empty(1,0);
 userData.ML = MovieList.empty(1,0);
 userData.ImD = ImageData.empty(1,0);
+userData.ImL = ImageList.empty(1,0);
 set(handles.figure1, 'Userdata', userData)
 refreshDisplay(hObject, eventdata, handles)
 guidata(hObject, handles);
@@ -620,10 +657,15 @@ set(handles.text_movies, 'String', sprintf('%g/%g movie(s)/images',iMovie,nMovie
 end
 
 % Display list information
-listPaths = arrayfun(@getFullPath,userData.ML,'Unif',false);
-nLists= numel(userData.ML);
+if ~isempty(userData.ImL)
+    listPaths = arrayfun(@getFullPath,userData.ImL,'Unif',false);
+    nLists= numel(userData.ImL);
+else
+    listPaths = arrayfun(@getFullPath,userData.ML,'Unif',false);
+    nLists= numel(userData.ML);
+end
 iList = get(handles.listbox_movieList, 'Value');
-if isempty(userData.ML), 
+if isempty(listPaths),
     iList=0; 
 else
     iList=max(1,min(iList,nLists));
@@ -636,12 +678,17 @@ set(handles.text_movieList, 'String', sprintf('%g/%g movie list(s)',iList,nLists
 function pushbutton_deletelist_Callback(hObject, eventdata, handles)
 
 userData = get(handles.figure1, 'Userdata');
-if isempty(userData.MD), return;end
+if isempty(userData.MD) && isempty(userData.ImD), return;end
 
 % Delete channel object
 iList = get(handles.listbox_movieList,'Value');
-delete(userData.ML(iList));
-userData.ML(iList) = [];
+if ~isempty(userData.ImL)
+    delete(userData.ImL(iList));
+    userData.ImL(iList) = [];
+else
+    delete(userData.ML(iList));
+    userData.ML(iList) = [];
+end
 
 % Refresh listbox_channel
 set(handles.figure1, 'Userdata', userData)

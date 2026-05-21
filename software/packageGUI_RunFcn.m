@@ -52,6 +52,9 @@ end
 if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
     field = 'ML';
 end
+if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+    field = 'ImL';
+end
 
 nMovies = length(userData.(field)); % number of movies
 if get(handles.checkbox_runall, 'Value')
@@ -682,7 +685,19 @@ function userData = updateUserData(handles,newProcs,iMovie)
     end
 
     % Determine field
-    if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
+    if ~isempty(userData.MD)
+        field='MD';
+    elseif isfield(userData, 'ImD') && ~isempty(userData.ImD)
+        field='ImD';
+    else
+        field = 'ML';
+    end
+    if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
+        field = 'ML';
+    end
+    if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+        field = 'ImL';
+    end
 
     for i=1:length(newProcs)
         proc = newProcs{i};
@@ -704,11 +719,15 @@ function userData = updateUserData(handles,newProcs,iMovie)
                 % list and does not generate an error otherwise
                 userData.ML(ll).attachMovies(MOs(iMovie(i)));
             end
+        elseif(strcmp(field,'ImD') && isfield(userData, 'ImL'))
+            for ll = 1:length(userData.ImL)
+                userData.ImL(ll).attachImages(MOs(iMovie(i)));
+            end
         end
 
         % Replace Package
         iPackage = MOs(iMovie(i)).getPackageIndex(userData.packageName,1,false);
-        userData.package(iMovie(i)) = userData.MD(iMovie).getPackage(iPackage);
+        userData.package(iMovie(i)) = userData.(field)(iMovie(i)).getPackage(iPackage);
 
         % Update crtPackage if it is the one currently selected
         if(userData.id == iMovie)

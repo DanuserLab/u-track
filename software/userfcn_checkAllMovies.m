@@ -26,7 +26,8 @@ if get(handles.checkbox_all, 'Value')
     
     userData = get(handles.figure1, 'UserData');
     % Modified the section below to make sure checkbox(Apply Check/Uncheck to All Movies) work properly on packageGUI for ML input packages as well. -2019 & 2024
-    if ~any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
+    if ~any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList())) ...
+            && ~any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
         if ~isempty(userData.MD) && isempty(userData.ImD)
             n = length(userData.MD);
         elseif isempty(userData.MD) && ~isempty(userData.ImD)
@@ -39,6 +40,16 @@ if get(handles.checkbox_all, 'Value')
             userData.statusM(x).Checked(procID) = value;
             set(handles.figure1, 'UserData', userData)
             
+            dfs_checkAllMovies(procID, value, handles, x)
+        end
+    elseif any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+        for x = setdiff(1:length(userData.ImL), userData.id)
+            % Recalls the userData that may have been updated by the
+            % checkAllMovies function
+            userData=get(handles.figure1, 'UserData');
+            userData.statusM(x).Checked(procID) = value;
+            set(handles.figure1, 'UserData', userData)
+
             dfs_checkAllMovies(procID, value, handles, x)
         end
     else 

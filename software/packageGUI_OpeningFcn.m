@@ -30,6 +30,7 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 %       userData.MD - array of MovieData object
 %       userData.ML - array of MovieList object
 %       userData.ImD - array of ImageData object	% added June 2020
+%       userData.ImL - array of ImageList object
 %       userData.package - array of package (same length with userData.MD)
 %       userData.crtPackage - the package of current MD
 %       userData.id - the id of current MD on board
@@ -87,6 +88,7 @@ ip.addParameter('MD',[],@(x) isempty(x) || isa(x,'MovieData'));
 % ip.addParameter('menu_debug',true, @(x) islogical(x) || x==1 || x==0);
 ip.addParameter('ML',[],@(x) isempty(x) || isa(x,'MovieList'));
 ip.addParameter('ImD',[],@(x) isempty(x) || isa(x,'ImageData'));
+ip.addParameter('ImL',[],@(x) isempty(x) || isa(x,'ImageList'));
 ip.addParameter('packageConstr','',@(x) isa(x,'function_handle'));
 ip.addParameter('packageIndx',{},@iscell);
 ip.addParameter('cluster',[],@(x) isempty(x) || isa(x,'parallel.Cluster'));
@@ -104,6 +106,7 @@ userData.packageName = packageName;
 userData.MD = ip.Results.MD;
 userData.ML = ip.Results.ML;
 userData.ImD = ip.Results.ImD;
+userData.ImL = ip.Results.ImL;
 if(~isempty(ip.Results.cluster))
     uTrackParCluster(ip.Results.cluster);
 end
@@ -119,6 +122,16 @@ end
 
 if isa(ip.Results.MO,'MovieList')
     userData.ML = ip.Results.MO;
+    set(handles.pushbutton_status,'Enable','off');
+elseif isa(ip.Results.MO,'ImageList')
+    userData.ImL = ip.Results.MO;
+    if isempty(userData.ImD)
+        imageCells = arrayfun(@(x) x.getImages(), userData.ImL, 'UniformOutput', false);
+        imageCells = horzcat(imageCells{:});
+        if ~isempty(imageCells)
+            userData.ImD = horzcat(imageCells{:});
+        end
+    end
     set(handles.pushbutton_status,'Enable','off');
 elseif isa(ip.Results.MO,'ImageData')
     userData.ImD=ip.Results.MO;
@@ -410,7 +423,15 @@ set(handles.text_packageName,'String',userData.crtPackage.getName);
 
 % Set movie explorer
 msg = {};
-if isa(ip.Results.MO,'MovieData'), movieType = 'Movie'; elseif isa(ip.Results.MO,'ImageData'), movieType = 'ImageData'; else movieType = 'Movie list'; end
+if isa(ip.Results.MO,'MovieData')
+    movieType = 'Movie';
+elseif isa(ip.Results.MO,'ImageData')
+    movieType = 'ImageData';
+elseif isa(ip.Results.MO,'ImageList')
+    movieType = 'Image list';
+else
+    movieType = 'Movie list';
+end
 for i = 1: length(ip.Results.MO)
     msg = horzcat(msg, {sprintf('  %s %d of %d', movieType, i, length(ip.Results.MO))});
 end

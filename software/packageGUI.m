@@ -76,7 +76,7 @@ varargout{1} = handles.output;
 userData = get(handles.figure1, 'UserData');
 if (isfield(userData,'startMovieSelectorGUI') && userData.startMovieSelectorGUI)
     movieSelectorGUI('packageName',userData.packageName,'MD',userData.MD,...
-        'ML', userData.ML , 'ImD', userData.ImD, 'cluster', uTrackParCluster);
+        'ML', userData.ML , 'ImD', userData.ImD, 'ImL', userData.ImL, 'cluster', uTrackParCluster);
     delete(handles.figure1)
 end
 
@@ -143,6 +143,10 @@ userData.id = mod(newMovieId-1,nMovies)+1;
 if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
     nMovieLists = length(userData.ML);
     userData.id = mod(newMovieId-1,nMovieLists)+1;
+end
+if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+    nImageLists = length(userData.ImL);
+    userData.id = mod(newMovieId-1,nImageLists)+1;
 end
 
 userData.crtPackage = userData.package(userData.id);
@@ -254,7 +258,7 @@ userData = get(handles.figure1,'Userdata');
 % if ~isempty(userData.MD), field = 'MD'; else field = 'ML'; end
 % arrayfun(@(x) x.save,userData.(field));
 movieSelectorGUI('packageName',userData.packageName,...
-    'MD', userData.MD, 'ML', userData.ML, 'ImD', userData.ImD);
+    'MD', userData.MD, 'ML', userData.ML, 'ImD', userData.ImD, 'ImL', userData.ImL);
 delete(handles.figure1)
 
 % --------------------------------------------------------------------
@@ -352,7 +356,9 @@ procID = str2double(prop(length('pushbutton_show_')+1:end));
 
 % Modified the section below, so for ML as input packages, 
 % the Folder Icon (pushbutton_open) can call another GUI named folderViewer to open multiple result folders. - 2019 & 2024
-if ~any(cellfun(@(pkg) isequal(userData.packageName, pkg), inputMLPackageList()))
+isMLPackage = any(cellfun(@(pkg) isequal(userData.packageName, pkg), inputMLPackageList()));
+isImLPackage = any(cellfun(@(pkg) isequal(userData.packageName, pkg), inputImLPackageList()));
+if ~(isMLPackage || isImLPackage)
     % Use the OS-specific command to open result in exploration window
     outputDir = userData.crtPackage.processes_{procID}.funParams_.OutputDirectory;
     if ispc
