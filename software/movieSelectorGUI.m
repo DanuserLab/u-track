@@ -587,6 +587,60 @@ userData.ML = horzcat(userData.ML, ML);
 set(handles.figure1,'UserData',userData);
 refreshDisplay(hObject, eventdata, handles)
 
+% --- Executes on button press in pushbutton_save_ImL.
+function pushbutton_save_ImL_Callback(hObject, eventdata, handles)
+
+userData = get(handles.figure1, 'UserData');
+
+if isempty(userData.ImD)
+    warndlg('No images selected. Please create new image data or open existing image data or image list.', 'No image Selected', 'modal')
+    return
+end
+
+if isempty(userData.ImL)
+    imageListPath = [userData.userDir filesep];
+    imageListFileName = 'imageList.mat';
+else
+    imageListPath = userData.ImL(end).imageListPath_;
+    imageListFileName = userData.ImL(end).imageListFileName_;
+end
+
+% Ask user where to save the image data file
+[filename,path] = uiputfile('*.mat','Find a place to save your image list',...
+             [imageListPath filesep imageListFileName]);         
+if ~any([filename,path]), return; end
+
+listPaths = arrayfun(@getFullPath,userData.ImL,'Unif',false);
+if any(strcmp([path filename], listPaths))
+    user_response = questdlg(['Are you sure to want to overwrite the list '...
+        'with the current selection of images? All analysis performed at the '...
+        'list level will be lost.'], ...
+        'Movie Listbox', 'Yes','No','Yes');
+    if strcmpi('no', user_response), return; end
+    iList = strcmp([path filename], listPaths);
+    outputDir = userData.ImL(iList).outputDirectory_;
+    delete(userData.ImL(iList));
+    userData.ImL(iList) = [];
+else
+    % Ask user where to select the output directory of the
+    outputDir = uigetdir(path,'Select a directory to store the list analysis output');
+    if isequal(outputDir,0), return; end
+end
+
+try
+    ImL = ImageList(userData.ImD, outputDir);
+    ImL.setPath(path);
+    ImL.setFilename(filename);
+    ImL.sanityCheck;
+catch ME
+    msg = sprintf('%s\n\nImage list is not saved.', ME.message);
+    errordlg(msg, 'Image List Error', 'modal')
+    return
+end
+userData.ImL = horzcat(userData.ImL, ImL);
+set(handles.figure1,'UserData',userData);
+refreshDisplay(hObject, eventdata, handles)
+
 % --------------------------------------------------------------------
 function menu_tools_crop_Callback(hObject, eventdata, handles)
 
