@@ -213,12 +213,6 @@ set(handles.listbox_availableChannels,'String',userData.ImD.getImFolderPaths(), 
     'UserData',1:numel(userData.ImD.imFolders_));
 
 channelIndex = funParams.ImFolderIndex;
-elseif isfield(userData, 'ImL')
-sampleImD = userData.ImL.getImage(1);
-set(handles.listbox_availableChannels,'String',sampleImD.getImFolderPaths(), ...
-    'UserData',1:numel(sampleImD.imFolders_));
-
-channelIndex = funParams.ImFolderIndex;
 end
 % Find any parent process
 parentProc = userData.crtPackage.getParent(userData.procID);
@@ -243,9 +237,6 @@ if ~isempty(channelIndex)
     channelString = userData.MD.getChannelPaths(channelIndex);
     elseif isfield(userData, 'ImD')
         channelString = userData.ImD.getImFolderPaths(channelIndex);
-    elseif isfield(userData, 'ImL')
-        sampleImD = userData.ImL.getImage(1);
-        channelString = sampleImD.getImFolderPaths(channelIndex);
     end
 else
     channelString = {};

@@ -631,9 +631,9 @@ userData=get(handles.figure1,'UserData');
 props=get(hObject,{'UserData','Value'});
 if isequal(props{1}(props{2}), userData.movieIndex),return;end
 if isempty(userData.procId)
-   movieViewer(userData.ML,'movieIndex',props{1}(props{2})); 
+   imageDataViewer(userData.ML,'movieIndex',props{1}(props{2})); 
 else
-movieViewer(userData.ML,'procId', userData.procId,'movieIndex',props{1}(props{2}));
+imageDataViewer(userData.ML,'procId', userData.procId,'movieIndex',props{1}(props{2}));
 end
 
 function size = getPanelSize(hPanel)

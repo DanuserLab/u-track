@@ -144,6 +144,7 @@ if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackag
     nMovieLists = length(userData.ML);
     userData.id = mod(newMovieId-1,nMovieLists)+1;
 end
+% Fixed error when switch between Imagelists on PackageGUI for ImL as input packages: - 2026
 if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
     nImageLists = length(userData.ImL);
     userData.id = mod(newMovieId-1,nImageLists)+1;

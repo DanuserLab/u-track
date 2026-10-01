@@ -52,13 +52,7 @@ end
 set(setupHandles,'Enable','on');
 
 % Set movie data path
-if ~isempty(userData.MD)
-    field='MD';
-elseif isfield(userData, 'ImD') && ~isempty(userData.ImD)
-    field = 'ImD';
-else
-    field = 'ML';
-end
+if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
 
 % Solved MLs' path not corretly displayed problem on packageGUI for ML input packages: - 2019 & 2024
 if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
@@ -70,7 +64,7 @@ if any(cellfun(@(ImDpackList) isa(userData.crtPackage, ImDpackList), inputImDPac
     field = 'ImD';
 end
 
-% Solved ImLs' path not correctly displayed problem on packageGUI for ImL input packages.
+% Solved ImLs' path not correctly displayed problem on packageGUI for ImL input packages. - 2026
 if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
     field = 'ImL';
 end

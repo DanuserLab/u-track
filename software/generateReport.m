@@ -40,24 +40,31 @@ basicLogMsg = cell(size(movieException));
 extendedLogMsg = cell(size(movieException));
 for i = errorMovies(:)'
     % Format movie log message
-    if isfield(userData, 'crtPackage') && ...
-            any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
-        field = 'ML';
-        type = 'Movie list';
-    elseif isfield(userData, 'crtPackage') && ...
-            any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
-        field = 'ImL';
-        type = 'Image list';
-    elseif ~isempty(userData.MD) && isempty(userData.ImD)
+    if ~isempty(userData.MD) && isempty(userData.ImD)
         field = 'MD';
         type = 'Movie'; 
     elseif isempty(userData.MD) && ~isempty(userData.ImD)
         field = 'ImD';
         type = 'ImageData';
+    elseif ~isempty(userData.ML) && isempty(userData.ImL)
+        field = 'ML';
+        type = 'Movie list'; 
     else
+        field = 'ImL';
+        type = 'Image list';         
+    end
+
+    % for ML input packages: - 2026
+    if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
         field = 'ML';
         type = 'Movie list'; 
     end
+    % for ImL input packages: - 2026
+    if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
+        field = 'ImL';
+        type = 'Image list'; 
+    end
+
     basicLogMsg{i} = sprintf('%s %d - %s:\n\n', type, i, userData.(field)(i).getFullPath);
     extendedLogMsg{i}=basicLogMsg{i};
     

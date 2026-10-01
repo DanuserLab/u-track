@@ -44,14 +44,17 @@ if ~isempty(userData.MD) && isempty(userData.ImD)
     field='MD'; 
 elseif isempty(userData.MD) && ~isempty(userData.ImD) 
     field = 'ImD'; 
+elseif ~isempty(userData.ML) && isempty(userData.ImL)
+    field = 'ML';
 else
-    field = 'ML'; 
+    field = 'ImL';       
 end
 
 % Solved multiple MovieLists not working problem on packageGUI for ML input packages: - 2019 & 2024
 if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
     field = 'ML';
 end
+% Solved multiple ImageLists not working problem on packageGUI for ImL input packages: - 2026
 if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
     field = 'ImL';
 end
@@ -685,19 +688,7 @@ function userData = updateUserData(handles,newProcs,iMovie)
     end
 
     % Determine field
-    if ~isempty(userData.MD)
-        field='MD';
-    elseif isfield(userData, 'ImD') && ~isempty(userData.ImD)
-        field='ImD';
-    else
-        field = 'ML';
-    end
-    if any(cellfun(@(MLpackList) isa(userData.crtPackage, MLpackList), inputMLPackageList()))
-        field = 'ML';
-    end
-    if any(cellfun(@(ImLpackList) isa(userData.crtPackage, ImLpackList), inputImLPackageList()))
-        field = 'ImL';
-    end
+    if ~isempty(userData.MD), field='MD'; else field = 'ML'; end
 
     for i=1:length(newProcs)
         proc = newProcs{i};
@@ -719,15 +710,11 @@ function userData = updateUserData(handles,newProcs,iMovie)
                 % list and does not generate an error otherwise
                 userData.ML(ll).attachMovies(MOs(iMovie(i)));
             end
-        elseif(strcmp(field,'ImD') && isfield(userData, 'ImL'))
-            for ll = 1:length(userData.ImL)
-                userData.ImL(ll).attachImages(MOs(iMovie(i)));
-            end
         end
 
         % Replace Package
         iPackage = MOs(iMovie(i)).getPackageIndex(userData.packageName,1,false);
-        userData.package(iMovie(i)) = userData.(field)(iMovie(i)).getPackage(iPackage);
+        userData.package(iMovie(i)) = userData.MD(iMovie).getPackage(iPackage);
 
         % Update crtPackage if it is the one currently selected
         if(userData.id == iMovie)

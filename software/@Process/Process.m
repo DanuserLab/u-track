@@ -402,7 +402,7 @@ classdef Process < hgsetget
         end
         
         function hfigure = resultDisplay(obj)
-            if isa(obj.getOwner(), 'ImageData')
+            if isa(obj.getOwner(), 'ImageData') || isa(obj.getOwner(), 'ImageList')
                 hfigure = imageDataViewer(obj.getOwner(), ...
                     find(cellfun(@(x)isequal(x,obj),obj.getOwner().processes_)));
             else

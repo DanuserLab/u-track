@@ -30,7 +30,7 @@ function packageGUI_OpeningFcn(hObject,eventdata,handles,packageName,varargin)
 %       userData.MD - array of MovieData object
 %       userData.ML - array of MovieList object
 %       userData.ImD - array of ImageData object	% added June 2020
-%       userData.ImL - array of ImageList object
+%       userData.ImL - array of ImageList object    % added 2026
 %       userData.package - array of package (same length with userData.MD)
 %       userData.crtPackage - the package of current MD
 %       userData.id - the id of current MD on board
@@ -125,13 +125,6 @@ if isa(ip.Results.MO,'MovieList')
     set(handles.pushbutton_status,'Enable','off');
 elseif isa(ip.Results.MO,'ImageList')
     userData.ImL = ip.Results.MO;
-    if isempty(userData.ImD)
-        imageCells = arrayfun(@(x) x.getImages(), userData.ImL, 'UniformOutput', false);
-        imageCells = horzcat(imageCells{:});
-        if ~isempty(imageCells)
-            userData.ImD = horzcat(imageCells{:});
-        end
-    end
     set(handles.pushbutton_status,'Enable','off');
 elseif isa(ip.Results.MO,'ImageData')
     userData.ImD=ip.Results.MO;
